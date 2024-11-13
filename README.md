@@ -24,7 +24,25 @@ Just like how Pachonc bounces around the TFT board bringing joy, this app bounce
 1. Get your Riot API key from https://developer.riotgames.com/
 2. Launch the application
 3. Enter your API key
-4. Search for a summoner using their Riot ID (name#tag)
+4. Search for a summoner:
+   - Enter Riot ID (Example: `BuffKaisa#69420`)
+   - Select region from dropdown
+   - Click Search
+
+## Region Guide
+| Code | Region |
+|------|--------|
+| na1  | North America |
+| euw1 | Europe West |
+| eun1 | Europe Nordic & East |
+| kr   | Korea |
+| br1  | Brazil |
+| la1  | Latin America North |
+| la2  | Latin America South |
+| oc1  | Oceania |
+| tr1  | Turkey |
+| ru   | Russia |
+| jp1  | Japan |
 
 ## Credits
 ### Developer
