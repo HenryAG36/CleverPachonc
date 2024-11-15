@@ -23,3 +23,7 @@ build/
 # Local development settings
 *.log
 .DS_Store
+
+# Keep assets folder
+!src/assets/icons/*.png
+!src/assets/icons/*.ico

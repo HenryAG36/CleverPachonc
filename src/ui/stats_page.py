@@ -9,7 +9,9 @@ from . import (
     List,
     BaseFrame
 )
+import tkinter as tk
 from .controller import Controller
+from ..utils.image_utils import get_champion_icon, get_rank_icon, get_item_icon
 
 class StatsPage(BaseFrame):
     """Stats page for displaying summoner information"""
@@ -52,7 +54,7 @@ class StatsPage(BaseFrame):
             text="Ranked Stats",
             font=ctk.CTkFont(size=18, weight="bold")
         )
-        self.ranked_label.pack()
+        self.ranked_label.pack(pady=5)
         
         # Champion mastery
         self.mastery_frame = ctk.CTkFrame(self.stats_frame)
@@ -97,32 +99,42 @@ class StatsPage(BaseFrame):
         
         # Update ranked stats
         if ranked_stats:
-            ranked_text = self.format_ranked_stats(ranked_stats)
-            self.ranked_label.configure(text=ranked_text)
+            self.format_ranked_stats(ranked_stats)
         else:
             self.ranked_label.configure(text="No ranked data available")
         
         # Update mastery data
         if mastery_data:
-            mastery_text = self.format_mastery_data(mastery_data, champion_map)
-            self.mastery_label.configure(text=mastery_text)
+            self.format_mastery_data(mastery_data, champion_map)
         else:
             self.mastery_label.configure(text="No mastery data available")
         
         # Update match history
         self.format_match_history(match_history, summoner_data['puuid'], champion_map, item_data)
 
-    def format_ranked_stats(self, ranked_stats: Dict[str, Any]) -> str:
+    def format_ranked_stats(self, ranked_stats: Dict[str, Any]) -> None:
         """Format ranked stats for display"""
         if not ranked_stats:
             return "No ranked data available"
         
-        formatted_text = ""
+        # Clear previous widgets
+        for widget in self.ranked_frame.winfo_children():
+            widget.destroy()
+        
+        self.ranked_label = ctk.CTkLabel(
+            self.ranked_frame,
+            text="Ranked Stats",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        self.ranked_label.pack(pady=5)
+        
         for queue in ranked_stats:
-            # Get queue type (e.g., "RANKED_SOLO_5x5", "RANKED_FLEX_SR")
-            queue_type = queue['queueType'].replace('_', ' ').title()
+            # Create frame for each queue
+            queue_frame = ctk.CTkFrame(self.ranked_frame)
+            queue_frame.pack(fill="x", pady=2)
             
-            # Format the stats
+            # Get queue info
+            queue_type = queue['queueType'].replace('_', ' ').title()
             tier = queue['tier'].title()
             rank = queue['rank']
             lp = queue['leaguePoints']
@@ -131,46 +143,90 @@ class StatsPage(BaseFrame):
             total_games = wins + losses
             winrate = (wins / total_games * 100) if total_games > 0 else 0
             
-            formatted_text += f"{queue_type}:\n"
-            formatted_text += f"• {tier} {rank} ({lp} LP)\n"
-            formatted_text += f"• {wins}W {losses}L ({winrate:.1f}% WR)\n\n"
-        
-        return formatted_text if formatted_text else "No ranked data available"
+            # Get rank icon
+            icon = get_rank_icon(tier)
+            if icon:
+                icon_label = ctk.CTkLabel(queue_frame, image=icon, text="")
+                icon_label.image = icon  # Keep reference
+                icon_label.pack(side="left", padx=5)
+            
+            # Queue info
+            info_frame = ctk.CTkFrame(queue_frame)
+            info_frame.pack(side="left", fill="x", expand=True)
+            
+            queue_label = ctk.CTkLabel(
+                info_frame,
+                text=f"{queue_type}",
+                font=ctk.CTkFont(size=14, weight="bold")
+            )
+            queue_label.pack(anchor="w")
+            
+            rank_label = ctk.CTkLabel(
+                info_frame,
+                text=f"{tier} {rank} ({lp} LP)"
+            )
+            rank_label.pack(anchor="w")
+            
+            stats_label = ctk.CTkLabel(
+                info_frame,
+                text=f"{wins}W {losses}L ({winrate:.1f}% WR)"
+            )
+            stats_label.pack(anchor="w")
 
     def format_mastery_data(
         self,
         mastery_data: List[Dict[str, Any]],
         champion_map: Dict[str, str]
-    ) -> str:
+    ) -> None:
         """Format mastery data for display"""
         if not mastery_data:
             return "No mastery data available"
+        
+        # Clear previous widgets
+        for widget in self.mastery_frame.winfo_children():
+            widget.destroy()
         
         # Sort by mastery points
         sorted_mastery = sorted(
             mastery_data,
             key=lambda x: x['championPoints'],
             reverse=True
-        )
+        )[:5]  # Top 5 champions
         
-        # Take top 5 champions
-        top_champions = sorted_mastery[:5]
-        
-        formatted_text = "Top 5 Champions:\n"
-        for champ in top_champions:
+        for champ in sorted_mastery:
+            # Create frame for each champion
+            champ_frame = ctk.CTkFrame(self.mastery_frame)
+            champ_frame.pack(fill="x", pady=2)
+            
+            # Get champion info
             champ_id = str(champ['championId'])
-            # Get champion name from map, fallback to ID if not found
             champ_name = champion_map.get(champ_id, f"Champion {champ_id}")
             points = champ['championPoints']
             level = champ['championLevel']
             
-            # Format points with commas for readability
-            formatted_points = f"{points:,}"
+            # Get champion icon
+            icon = get_champion_icon(champ_name)
+            if icon:
+                icon_label = ctk.CTkLabel(champ_frame, image=icon, text="")
+                icon_label.image = icon  # Keep reference
+                icon_label.pack(side="left", padx=5)
             
-            formatted_text += f"• {champ_name} (Level {level})\n"
-            formatted_text += f"  {formatted_points} points\n"
-        
-        return formatted_text
+            # Champion info
+            info_frame = ctk.CTkFrame(champ_frame)
+            info_frame.pack(side="left", fill="x", expand=True)
+            
+            name_label = ctk.CTkLabel(
+                info_frame,
+                text=f"{champ_name}",
+                font=ctk.CTkFont(size=14, weight="bold")
+            )
+            name_label.pack(anchor="w")
+            
+            stats_label = ctk.CTkLabel(
+                info_frame,
+                text=f"Level {level} • {points:,} points"
+            )
+            stats_label.pack(anchor="w")
 
     def format_match_history(
         self,
@@ -206,47 +262,68 @@ class StatsPage(BaseFrame):
             champ_id = str(player['championId'])
             champ_name = champion_map.get(champ_id, f"Champion {champ_id}")
             
+            # Get champion icon
+            icon = get_champion_icon(champ_name, size=(40, 40))
+            if icon:
+                icon_label = ctk.CTkLabel(match_frame, image=icon, text="")
+                icon_label.image = icon  # Keep reference
+                icon_label.pack(side="left", padx=5)
+            
+            # Create info frame
+            info_frame = ctk.CTkFrame(match_frame)
+            info_frame.pack(side="left", fill="x", expand=True, padx=5)
+            
+            # Result and champion name
             result_label = ctk.CTkLabel(
-                match_frame,
+                info_frame,
                 text=f"{result} - {champ_name}",
                 text_color=result_color,
                 font=ctk.CTkFont(weight="bold")
             )
-            result_label.pack(side="left", padx=10)
+            result_label.pack(anchor="w")
             
-            # KDA
+            # Stats frame
+            stats_frame = ctk.CTkFrame(info_frame)
+            stats_frame.pack(fill="x", expand=True)
+            
+            # KDA and CS
             kda = f"{player['kills']}/{player['deaths']}/{player['assists']}"
             kda_ratio = (player['kills'] + player['assists']) / max(1, player['deaths'])
-            kda_label = ctk.CTkLabel(
-                match_frame,
-                text=f"KDA: {kda} ({kda_ratio:.2f})"
-            )
-            kda_label.pack(side="left", padx=10)
-            
-            # CS and game duration
             cs = player['totalMinionsKilled'] + player.get('neutralMinionsKilled', 0)
             minutes = match['info']['gameDuration'] / 60
             cs_per_min = cs / minutes
-            cs_label = ctk.CTkLabel(
-                match_frame,
-                text=f"CS: {cs} ({cs_per_min:.1f}/min)"
-            )
-            cs_label.pack(side="left", padx=10)
             
-            # Items
+            stats_label = ctk.CTkLabel(
+                stats_frame,
+                text=f"KDA: {kda} ({kda_ratio:.2f}) • CS: {cs} ({cs_per_min:.1f}/min)",
+                font=ctk.CTkFont(size=12)
+            )
+            stats_label.pack(side="left", padx=10)
+            
+            # Items frame
             items_frame = ctk.CTkFrame(match_frame)
             items_frame.pack(side="right", padx=10)
             
+            # Add item icons
             for i in range(6):
                 item_id = str(player.get(f'item{i}', 0))
                 if item_id != "0" and item_id in item_data:
-                    item_name = item_data[item_id]['name']
-                    item_label = ctk.CTkLabel(
-                        items_frame,
-                        text=f"•{item_name}",
-                        font=ctk.CTkFont(size=10)
-                    )
-                    item_label.pack(side="left", padx=2)
+                    item_icon = get_item_icon(item_id)
+                    if item_icon:
+                        item_label = ctk.CTkLabel(
+                            items_frame,
+                            image=item_icon,
+                            text="",
+                            cursor="hand2"
+                        )
+                        item_label.image = item_icon  # Keep reference
+                        item_label.pack(side="left", padx=2)
+                        
+                        # Add tooltip with item name
+                        item_name = item_data[item_id]['name']
+                        tooltip_text = f"{item_name}"
+                        item_label.bind("<Enter>", lambda e, text=tooltip_text: self.show_tooltip(e, text))
+                        item_label.bind("<Leave>", self.hide_tooltip)
 
     def go_back(self) -> None:
         """Return to search page"""
@@ -257,3 +334,45 @@ class StatsPage(BaseFrame):
         
         # Let the controller handle the page switch
         self.controller.show_search_page()
+
+    def show_tooltip(self, event, text: str) -> None:
+        """Show tooltip on hover"""
+        x, y, _, _ = event.widget.bbox("insert")
+        x += event.widget.winfo_rootx() + 25
+        y += event.widget.winfo_rooty() + 20
+        
+        # Create tooltip window
+        self.tooltip = tk.Toplevel(self)
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+        
+        # Configure tooltip style
+        frame = tk.Frame(
+            self.tooltip,
+            background="#1a1a1a",
+            borderwidth=1,
+            relief="solid"
+        )
+        frame.pack(fill="both", expand=True)
+        
+        label = tk.Label(
+            frame,
+            text=text,
+            justify='left',
+            background="#1a1a1a",
+            foreground="#e0e0e0",
+            font=("Segoe UI", 10),
+            wraplength=250,
+            padx=8,
+            pady=4
+        )
+        label.pack()
+        
+        # Add subtle shadow effect
+        self.tooltip.lift()
+        self.tooltip.attributes('-alpha', 0.95)
+
+    def hide_tooltip(self, event=None) -> None:
+        """Hide tooltip"""
+        if hasattr(self, 'tooltip'):
+            self.tooltip.destroy()

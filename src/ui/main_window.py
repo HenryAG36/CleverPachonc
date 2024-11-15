@@ -7,6 +7,11 @@ from .stats_page import StatsPage
 from .login_window import APIKeyWindow
 from typing import Dict, List, Any, Type
 from .controller import Controller
+from ..utils.constants import APP_VERSION
+from ..utils.image_utils import get_app_icon
+from PIL import ImageTk
+import os
+import platform
 
 class LeagueStatsApp(ctk.CTk, Controller):
     """Main application window"""
@@ -14,8 +19,13 @@ class LeagueStatsApp(ctk.CTk, Controller):
         super().__init__()
         
         # Configure window
-        self.title("League Stats")
+        self.title(f"Clever Pachonc v{APP_VERSION}")
         self.geometry("800x600")
+        
+        # Set window icon based on platform
+        if platform.system() == "Windows":
+            icon_path = os.path.abspath(os.path.join("src", "assets", "icons", "app_icon.ico"))
+            self.after(200, lambda: self.iconbitmap(icon_path))
         
         # Create container
         container = ctk.CTkFrame(self)

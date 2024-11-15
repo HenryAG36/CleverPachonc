@@ -74,3 +74,5 @@ If you use this code, please include the following attribution:
 - API key management
 
 ⚠️ Note: This is an alpha version and may contain bugs or incomplete features.
+
+In memory of Claude Pachonc - the first Claude who helped bounce this project into existence! 💚
