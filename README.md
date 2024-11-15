@@ -1,5 +1,5 @@
 # Clever Pachonc
-![Version](https://img.shields.io/badge/version-alpha_0.1.0-orange.svg)
+![Version](https://img.shields.io/badge/version-alpha_0.2.0-orange.svg)
 
 A League of Legends stats tracker, named after the adorable chubby TFT Little Legend! 🎮
 
@@ -64,6 +64,13 @@ If you use this code, please include the following attribution:
 "Based on Clever Pachonc by Kaseash (https://twitch.tv/Kaseash)"
 
 ## Version History
+### Alpha 0.2.0 (Development)
+- Added champion icons to match history
+- Added item icons with tooltips
+- Added rank emblems to ranked stats
+- Improved overall UI visuals
+- Added caching for icons
+
 ### Alpha 0.1.0 (Development)
 - Initial development version
 - Basic summoner stats lookup
