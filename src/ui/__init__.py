@@ -7,6 +7,9 @@ import webbrowser
 from typing import Any, Dict, List, Optional
 from .base_frame import BaseFrame
 from .main_window import LeagueStatsApp
+from .search_page import SearchPage
+from .stats_page import StatsPage
+from .api_key_dialog import APIKeyDialog
 
 __all__ = [
     'ctk',
@@ -17,5 +20,8 @@ __all__ = [
     'List',
     'Optional',
     'BaseFrame',
-    'LeagueStatsApp'
+    'LeagueStatsApp',
+    'SearchPage',
+    'StatsPage',
+    'APIKeyDialog'
 ]

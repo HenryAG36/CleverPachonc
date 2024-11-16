@@ -1,62 +1,69 @@
 """
 Main window module
 """
-from . import ctk
+from typing import Dict, Any, Type, List
+import customtkinter as ctk
 from .search_page import SearchPage
 from .stats_page import StatsPage
-from .login_window import APIKeyWindow
-from typing import Dict, List, Any, Type
-from .controller import Controller
-from ..utils.constants import APP_VERSION
-from ..utils.image_utils import get_app_icon
-from PIL import ImageTk
-import os
-import platform
+from .api_key_dialog import APIKeyDialog
+from ..utils.constants import set_api_key, get_api_key
+
+class Controller:
+    """Base controller interface"""
+    def show_search_page(self) -> None:
+        pass
+    
+    def show_stats_page(
+        self,
+        summoner_name: str,
+        ranked_stats: Dict[str, Any],
+        mastery_data: List[Dict[str, Any]],
+        champion_map: Dict[str, str],
+        summoner_data: Dict[str, Any],
+        region: str,
+        match_history: List[Dict[str, Any]],
+        item_data: Dict[str, Any]
+    ) -> None:
+        pass
 
 class LeagueStatsApp(ctk.CTk, Controller):
-    """Main application window"""
     def __init__(self):
         super().__init__()
         
         # Configure window
-        self.title(f"Clever Pachonc v{APP_VERSION}")
-        self.geometry("800x600")
+        self.title("League Stats")
+        self.geometry("1280x720")
+        self.minsize(1280, 720)
         
-        # Set window icon based on platform
-        if platform.system() == "Windows":
-            icon_path = os.path.abspath(os.path.join("src", "assets", "icons", "app_icon.ico"))
-            self.after(200, lambda: self.iconbitmap(icon_path))
-        
-        # Create container
-        container = ctk.CTkFrame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        # Configure grid
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
         
         # Initialize frames dictionary
-        self.frames: Dict[Type, Any] = {}
+        self.frames = {}
         
         # Create frames
         for F in (SearchPage, StatsPage):
-            frame = F(container, self)
+            frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
         
         # Show initial frame
-        self.show_frame(SearchPage)
+        self.show_search_page()
         
-        # Show API key window
-        self.after(100, self.show_api_key_window)
-
+        # Check for API key
+        if not get_api_key():
+            self.after(100, self.get_api_key)  # Show dialog after window is ready
+    
     def show_frame(self, cont: Type) -> None:
         """Show a frame for the given page class"""
         frame = self.frames[cont]
         frame.tkraise()
-
+    
     def show_search_page(self) -> None:
         """Show search page"""
         self.show_frame(SearchPage)
-
+    
     def show_stats_page(
         self,
         summoner_name: str,
@@ -81,7 +88,10 @@ class LeagueStatsApp(ctk.CTk, Controller):
             item_data
         )
         self.show_frame(StatsPage)
-
-    def show_api_key_window(self) -> None:
-        """Show API key input window"""
-        APIKeyWindow(self)
+    
+    def get_api_key(self) -> None:
+        """Get API key from user"""
+        dialog = APIKeyDialog(self)
+        self.wait_window(dialog)
+        if dialog.api_key:
+            set_api_key(dialog.api_key)

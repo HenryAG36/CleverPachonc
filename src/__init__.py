@@ -1,5 +1,3 @@
-from src.ui.main_window import LeagueStatsApp
+from .ui import LeagueStatsApp
 
-if __name__ == "__main__":
-    app = LeagueStatsApp()
-    app.mainloop()
+__all__ = ['LeagueStatsApp']

@@ -2,28 +2,65 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
 
 # Virtual Environment
 venv/
 env/
 ENV/
+.env/
+.venv/
+pythonenv*/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
 
 # Environment variables
 .env
+.env.local
+.env.*.local
 
 # Distribution / packaging
 dist/
 build/
 *.egg-info/
+*.egg
+MANIFEST
+.Python
 
 # Local development settings
 *.log
 .DS_Store
+Thumbs.db
+desktop.ini
 
-# Keep assets folder
+# Cache directories
+src/cache/*
+!src/cache/.gitkeep
+.cache/
+.pytest_cache/
+
+# Keep specific assets
+!src/assets/
 !src/assets/icons/*.png
 !src/assets/icons/*.ico
+!src/assets/ranks/*.png
+
+# Temporary files
+*.bak
+*.tmp
+*~
+._*
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover

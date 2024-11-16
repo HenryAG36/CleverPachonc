@@ -1,195 +1,210 @@
 """
 Search page module for summoner lookup
 """
-from . import (
-    ctk,
-    messagebox,
-    webbrowser,
-    Any,
-    BaseFrame
-)
+from typing import Any, Dict, List
+import customtkinter as ctk
+import webbrowser
+from . import BaseFrame
 from ..api.riot_api import (
-    get_summoner_data,
+    get_summoner_by_name,
     get_ranked_stats,
     get_mastery_champions,
-    get_match_history
+    get_match_history,
+    get_match_details,
+    get_summoner_data
 )
-from ..utils.constants import (
-    REGIONS,
-    REGION_ROUTING
-)
+from ..api.data_dragon import get_champion_map, get_item_data
+from ..utils.constants import ERROR_MESSAGES
+from ..utils.recent_searches import RecentSearches
+import tkinter.messagebox as messagebox
+from .components.loading_indicator import LoadingIndicator
+from ..utils.cache_manager import CacheManager
 
 class SearchPage(BaseFrame):
     """Search page for looking up summoner stats"""
     def __init__(self, parent: Any, controller: Any):
         super().__init__(parent, controller)
+        self.recent_searches = RecentSearches()
+        
+        # Initialize data
+        self.champion_map = get_champion_map()
+        self.item_data = get_item_data()
         
         # Create main container
         self.main_frame = ctk.CTkFrame(self)
-        self.main_frame.pack(expand=True, padx=20, pady=20)
+        self.main_frame.pack(expand=True, fill="both", padx=20, pady=20)
         
-        # Title
-        self.title = ctk.CTkLabel(
+        # Create title
+        title = ctk.CTkLabel(
             self.main_frame,
-            text="League Stats Tracker",
-            font=ctk.CTkFont(size=24, weight="bold")
+            text="League Stats",
+            font=ctk.CTkFont(size=32, weight="bold")
         )
-        self.title.pack(pady=20)
+        title.pack(pady=20)
         
-        # Search frame
-        self.search_frame = ctk.CTkFrame(self.main_frame)
-        self.search_frame.pack(pady=20)
+        # Create search frame
+        search_frame = ctk.CTkFrame(self.main_frame)
+        search_frame.pack(pady=20)
         
-        # Name entry
-        self.name_entry = ctk.CTkEntry(
-            self.search_frame,
-            placeholder_text="Summoner Name",
+        # Create region dropdown
+        self.region_var = ctk.StringVar(value="NA")
+        self.region_dropdown = ctk.CTkOptionMenu(
+            search_frame,
+            values=["NA", "EUW", "EUNE", "KR", "BR", "LAN", "LAS", "OCE", "TR", "RU", "JP"],
+            variable=self.region_var
+        )
+        self.region_dropdown.pack(side="left", padx=10)
+        
+        # Create search entry
+        self.search_entry = ctk.CTkEntry(
+            search_frame,
+            placeholder_text="Enter summoner name...",
             width=200
         )
-        self.name_entry.pack(side="left", padx=5)
+        self.search_entry.pack(side="left", padx=10)
         
-        # Tag entry
-        self.tag_entry = ctk.CTkEntry(
-            self.search_frame,
-            placeholder_text="#TAG",
-            width=80
-        )
-        self.tag_entry.pack(side="left", padx=5)
-        
-        # Region selector
-        self.region_var = ctk.StringVar(value=REGIONS[0])
-        self.region_selector = ctk.CTkOptionMenu(
-            self.search_frame,
-            values=REGIONS,
-            variable=self.region_var,
-            width=100
-        )
-        self.region_selector.pack(side="left", padx=5)
-        
-        # Search button
-        self.search_button = ctk.CTkButton(
-            self.search_frame,
+        # Create search button
+        search_button = ctk.CTkButton(
+            search_frame,
             text="Search",
             command=self.search_summoner
         )
-        self.search_button.pack(side="left", padx=5)
-
-        # Help text
-        self.help_text = ctk.CTkLabel(
+        search_button.pack(side="left", padx=10)
+        
+        # Create error label
+        self.error_label = ctk.CTkLabel(
             self.main_frame,
-            text="Enter Riot ID (e.g., Kaseash#NA1) and select server region",
-            font=ctk.CTkFont(size=12),
-            text_color="gray"
+            text="",
+            text_color="red"
         )
-        self.help_text.pack(pady=(0, 20))
-
-        # Credits frame
-        self.credits_frame = ctk.CTkFrame(self.main_frame)
-        self.credits_frame.pack(pady=20)
-
-        # Social media links
-        self.social_links = ctk.CTkLabel(
-            self.credits_frame,
-            text="Twitch/TikTok/YouTube: @Kaseash",
-            font=ctk.CTkFont(size=12),
-            text_color=("purple", "purple")
+        self.error_label.pack(pady=10)
+        
+        # Create social links
+        social_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        social_frame.pack(side="bottom", pady=20)
+        
+        twitch_button = ctk.CTkButton(
+            social_frame,
+            text="Follow on Twitch",
+            command=self.open_twitch
         )
-        self.social_links.pack(pady=(0,5))
-        self.social_links.bind("<Button-1>", self.handle_social_click)
-
-    def handle_social_click(self, _: Any) -> None:
-        """Handle social media link click"""
-        self.open_twitch()
-
+        twitch_button.pack(side="left", padx=5)
+        
+        # Add cache management button
+        self.cache_manager = CacheManager()
+        cache_button = ctk.CTkButton(
+            social_frame,
+            text="Clear Cache",
+            command=self.clear_cache
+        )
+        cache_button.pack(side="left", padx=5)
+        
+        # Add recent searches frame
+        self.recent_frame = ctk.CTkFrame(self)
+        self.recent_frame.pack(pady=20, padx=20, fill="x")
+        
+        self.recent_label = ctk.CTkLabel(
+            self.recent_frame,
+            text="Recent Searches",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        self.recent_label.pack(pady=10)
+        
+        # Add clear button
+        self.clear_button = ctk.CTkButton(
+            self.recent_frame,
+            text="Clear History",
+            command=self.clear_recent_searches
+        )
+        self.clear_button.pack(pady=5)
+        
+        # Container for recent search buttons
+        self.recent_buttons_frame = ctk.CTkFrame(self.recent_frame, fg_color="transparent")
+        self.recent_buttons_frame.pack(fill="x", padx=10)
+        
+        # Load recent searches
+        self.update_recent_searches()
+    
+    def update_recent_searches(self) -> None:
+        """Update recent searches display"""
+        # Clear existing buttons
+        for widget in self.recent_buttons_frame.winfo_children():
+            widget.destroy()
+        
+        # Add buttons for recent searches
+        for search in self.recent_searches.get_searches():
+            search_button = ctk.CTkButton(
+                self.recent_buttons_frame,
+                text=f"{search['summoner_name']} ({search['region']})",
+                command=lambda s=search: self.load_recent_search(s)
+            )
+            search_button.pack(pady=2, fill="x")
+    
+    def load_recent_search(self, search: Dict) -> None:
+        """Load a recent search"""
+        self.search_entry.delete(0, 'end')
+        self.search_entry.insert(0, search['summoner_name'])
+        self.region_var.set(search['region'])
+        self.search_summoner()
+    
+    def clear_recent_searches(self) -> None:
+        """Clear recent searches"""
+        self.recent_searches.clear_searches()
+        self.update_recent_searches()
+    
     def search_summoner(self) -> None:
-        """Search for summoner stats"""
-        summoner_name = self.name_entry.get().strip()
-        tag = self.tag_entry.get().strip()
-        region = self.region_var.get()
+        """Search for a summoner"""
+        summoner_name = self.search_entry.get().strip()
+        region = self.region_var.get().lower()
         
-        # Validate region
-        if region not in REGION_ROUTING:
-            messagebox.showerror(
-                "Error",
-                f"Invalid region: {region}"
-            )
-            return
-        
-        if not summoner_name or not tag:
-            messagebox.showerror(
-                "Error",
-                "Please enter both summoner name and tag!"
-            )
+        if not summoner_name:
             return
         
         try:
-            # Get summoner data
-            summoner_data = get_summoner_data(summoner_name, tag, region)
-            if not summoner_data:
-                messagebox.showerror(
-                    "Error",
-                    "Could not find summoner. Please check the name and tag."
-                )
-                return
+            # Show loading indicator
+            loading = LoadingIndicator(self, "Fetching summoner data...")
             
-            # Get ranked stats and mastery data
-            ranked_stats = get_ranked_stats(summoner_data['id'], region)
-            mastery_data = get_mastery_champions(summoner_data['puuid'], region)
+            # Fetch all data concurrently
+            summoner_data, ranked_stats, mastery_data, match_history = get_summoner_data(
+                summoner_name,
+                region
+            )
             
-            # Get match history
-            match_history = get_match_history(summoner_data['puuid'], region, count=10)
+            # Add to recent searches
+            self.recent_searches.add_search(summoner_name, region.upper())
+            self.update_recent_searches()
             
-            # Get champion data from Data Dragon
-            from ..api.data_dragon import get_champion_data, get_item_data
-            champion_data = get_champion_data()
-            item_data = get_item_data()
-            
-            # Create champion ID to name mapping
-            champion_map = {}
-            if champion_data:
-                for champ_name, champ_info in champion_data.items():
-                    champion_map[champ_info['key']] = champ_name
-            
-            # Show stats page with all data
-            self.show_stats(
+            # Show stats page
+            self.controller.show_stats_page(
                 summoner_name,
                 ranked_stats,
                 mastery_data,
-                champion_map,
+                self.champion_map,
                 summoner_data,
                 region,
                 match_history,
-                item_data
+                self.item_data
             )
             
-        except Exception as error:
-            if "401" in str(error):
-                messagebox.showerror(
-                    "Error",
-                    "API Key error. Please check:\n" +
-                    "1. Key is valid and not expired\n" +
-                    "2. Key was copied correctly\n" +
-                    "Get a new key at: developer.riotgames.com"
-                )
-            else:
-                messagebox.showerror(
-                    "Error", 
-                    f"Could not find summoner: {str(error)}"
-                )
-
+        except Exception as e:
+            error_message = str(e)
+            messagebox.showerror("Error", error_message)
+        finally:
+            if 'loading' in locals():
+                loading.destroy()
+    
     def show_stats(
         self,
         summoner_name: str,
-        ranked_stats: Any,
-        mastery_data: Any,
-        champion_map: dict,
-        summoner_data: Any,
+        ranked_stats: List[Dict[str, Any]],
+        mastery_data: List[Dict[str, Any]],
+        champion_map: Dict[str, str],
+        summoner_data: Dict[str, Any],
         region: str,
-        match_history: Any,
-        item_data: Any
+        match_history: List[Dict[str, Any]],
+        item_data: Dict[str, Any]
     ) -> None:
         """Show stats page with data"""
-        # Let the controller handle the page switch
         self.controller.show_stats_page(
             summoner_name,
             ranked_stats,
@@ -200,7 +215,21 @@ class SearchPage(BaseFrame):
             match_history,
             item_data
         )
-
+    
     def open_twitch(self) -> None:
         """Open Twitch channel"""
         webbrowser.open("https://twitch.tv/Kaseash")
+    
+    def clear_cache(self) -> None:
+        """Clear old cache files"""
+        try:
+            files_removed, space_cleared = self.cache_manager.clear_old_files()
+            if files_removed > 0:
+                messagebox.showinfo(
+                    "Cache Cleared",
+                    f"Removed {files_removed} old files\nFreed {space_cleared / 1024 / 1024:.2f} MB"
+                )
+            else:
+                messagebox.showinfo("Cache", "No old files to remove")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error clearing cache: {e}")

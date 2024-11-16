@@ -1,11 +1,11 @@
 """
 Base frame for all pages
 """
-from . import ctk, Any
-from .controller import Controller
+from typing import Any
+import customtkinter as ctk
 
 class BaseFrame(ctk.CTkFrame):
-    """Base frame class that all pages inherit from"""
-    def __init__(self, parent: Any, controller: Controller):
+    """Base frame class for all pages"""
+    def __init__(self, parent: Any, controller: Any):
         super().__init__(parent)
         self.controller = controller 

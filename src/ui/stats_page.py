@@ -1,86 +1,109 @@
 """
 Stats page module for displaying summoner statistics
 """
-from . import (
-    ctk,
-    messagebox,
-    Any,
-    Dict,
-    List,
-    BaseFrame
-)
-import tkinter as tk
-from .controller import Controller
-from ..utils.image_utils import get_champion_icon, get_rank_icon, get_item_icon
+from typing import Any, Dict, List, Optional
+import customtkinter as ctk
+from PIL import Image
+import requests
+from io import BytesIO
+from . import BaseFrame
+from ..utils.constants import QUEUE_NAMES
+from ..utils.image_utils import load_images_batch
+from .components import LoadingIndicator
+from ..utils.debug import DEBUG
+import time
+from base64 import b64decode
 
 class StatsPage(BaseFrame):
     """Stats page for displaying summoner information"""
-    def __init__(self, parent: Any, controller: Controller):
+    def __init__(self, parent: Any, controller: Any):
         super().__init__(parent, controller)
+        self.image_cache = {}
         
         # Create main container
         self.main_frame = ctk.CTkFrame(self)
-        self.main_frame.pack(expand=True, padx=20, pady=20)
+        self.main_frame.pack(expand=True, fill="both", padx=20, pady=20)
         
-        # Back button
-        self.back_button = ctk.CTkButton(
-            self.main_frame,
-            text="Back to Search",
-            command=self.go_back
-        )
-        self.back_button.pack(pady=10)
+        # Create tabview
+        self.tabview = ctk.CTkTabview(self.main_frame)
+        self.tabview.pack(expand=True, fill="both", padx=10, pady=10)
         
-        # Stats container
-        self.stats_frame = ctk.CTkFrame(self.main_frame)
-        self.stats_frame.pack(pady=20, fill="both", expand=True)
+        # Add tabs
+        self.profile_tab = self.tabview.add("Profile")
+        self.matches_tab = self.tabview.add("Match History")
         
-        # Summoner info
-        self.summoner_frame = ctk.CTkFrame(self.stats_frame)
-        self.summoner_frame.pack(pady=10, fill="x")
+        # Profile tab content frame (make it scrollable)
+        self.profile_frame = ctk.CTkScrollableFrame(self.profile_tab, fg_color="transparent")
+        self.profile_frame.pack(expand=True, fill="both", padx=10, pady=10)
         
-        self.summoner_name = ctk.CTkLabel(
-            self.summoner_frame,
+        # Create labels for profile info
+        self.summoner_label = ctk.CTkLabel(
+            self.profile_frame,
             text="",
             font=ctk.CTkFont(size=24, weight="bold")
         )
-        self.summoner_name.pack()
+        self.summoner_label.pack(pady=10)
         
-        # Ranked stats
-        self.ranked_frame = ctk.CTkFrame(self.stats_frame)
+        # Create ranked frame
+        self.ranked_frame = ctk.CTkFrame(self.profile_frame, fg_color="transparent")
         self.ranked_frame.pack(pady=10, fill="x")
         
         self.ranked_label = ctk.CTkLabel(
             self.ranked_frame,
-            text="Ranked Stats",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="",
+            font=ctk.CTkFont(size=16)
         )
         self.ranked_label.pack(pady=5)
         
-        # Champion mastery
-        self.mastery_frame = ctk.CTkFrame(self.stats_frame)
+        # Create mastery frame
+        self.mastery_frame = ctk.CTkFrame(self.profile_frame, fg_color="transparent")
         self.mastery_frame.pack(pady=10, fill="x")
         
         self.mastery_label = ctk.CTkLabel(
             self.mastery_frame,
-            text="Champion Mastery",
-            font=ctk.CTkFont(size=18, weight="bold")
+            text="",
+            font=ctk.CTkFont(size=16)
         )
-        self.mastery_label.pack()
+        self.mastery_label.pack(pady=5)
         
-        # Match history container
-        self.match_history_frame = ctk.CTkFrame(self.stats_frame)
-        self.match_history_frame.pack(pady=10, fill="both", expand=True)
-        
-        self.match_history_label = ctk.CTkLabel(
-            self.match_history_frame,
-            text="Recent Games",
-            font=ctk.CTkFont(size=16, weight="bold")
+        # Match history tab content
+        self.matches_frame = ctk.CTkScrollableFrame(
+            self.matches_tab,
+            fg_color="transparent"
         )
-        self.match_history_label.pack(pady=5)
-        
-        # Container for individual match entries
-        self.matches_container = ctk.CTkFrame(self.match_history_frame)
-        self.matches_container.pack(fill="both", expand=True)
+        self.matches_frame.pack(expand=True, fill="both", padx=10, pady=10)
+
+    def load_image(self, url: str, size: tuple = (30, 30), aspect_ratio: Optional[float] = None) -> Optional[ctk.CTkImage]:
+        """Load and cache an image from URL maintaining aspect ratio"""
+        try:
+            if url in self.image_cache:
+                return self.image_cache[url]
+
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            
+            image_data = BytesIO(response.content)
+            image = Image.open(image_data)
+            
+            if aspect_ratio:
+                # Use specified aspect ratio
+                target_height = size[1]
+                target_width = int(target_height * aspect_ratio)
+                new_size = (target_width, target_height)
+            else:
+                # Calculate aspect ratio from original image
+                aspect_ratio = image.width / image.height
+                target_size = size[0]
+                new_size = (target_size, int(target_size / aspect_ratio))
+            
+            # Resize maintaining aspect ratio
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
+            ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=new_size)
+            self.image_cache[url] = ctk_image
+            return ctk_image
+        except Exception as e:
+            print(f"Error loading image from {url}: {e}")
+            return None
 
     def update_stats(
         self,
@@ -93,286 +116,535 @@ class StatsPage(BaseFrame):
         match_history: List[Dict[str, Any]],
         item_data: Dict[str, Any]
     ) -> None:
-        """Update the stats display with new data"""
-        # Update summoner name
-        self.summoner_name.configure(text=f"{summoner_name} ({region})")
-        
-        # Update ranked stats
-        if ranked_stats:
-            self.format_ranked_stats(ranked_stats)
-        else:
-            self.ranked_label.configure(text="No ranked data available")
-        
-        # Update mastery data
-        if mastery_data:
-            self.format_mastery_data(mastery_data, champion_map)
-        else:
-            self.mastery_label.configure(text="No mastery data available")
+        """Update all stats"""
+        # Update profile info
+        self.update_profile(summoner_name, ranked_stats, mastery_data, champion_map, summoner_data)
         
         # Update match history
-        self.format_match_history(match_history, summoner_data['puuid'], champion_map, item_data)
+        self.update_match_history(match_history, summoner_data['puuid'], champion_map, item_data)
+        
+        # Switch to profile tab by default
+        self.tabview.set("Profile")
 
-    def format_ranked_stats(self, ranked_stats: Dict[str, Any]) -> None:
-        """Format ranked stats for display"""
-        if not ranked_stats:
-            return "No ranked data available"
-        
-        # Clear previous widgets
-        for widget in self.ranked_frame.winfo_children():
-            widget.destroy()
-        
-        self.ranked_label = ctk.CTkLabel(
-            self.ranked_frame,
-            text="Ranked Stats",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        self.ranked_label.pack(pady=5)
-        
-        for queue in ranked_stats:
-            # Create frame for each queue
-            queue_frame = ctk.CTkFrame(self.ranked_frame)
-            queue_frame.pack(fill="x", pady=2)
+    def update_profile(
+        self,
+        summoner_name: str,
+        ranked_stats: List[Dict[str, Any]],
+        mastery_data: List[Dict[str, Any]],
+        champion_map: Dict[str, str],
+        summoner_data: Dict[str, Any]
+    ) -> None:
+        """Update profile info"""
+        try:
+            # Clear existing content
+            for widget in self.profile_frame.winfo_children():
+                widget.destroy()
             
-            # Get queue info
-            queue_type = queue['queueType'].replace('_', ' ').title()
-            tier = queue['tier'].title()
-            rank = queue['rank']
-            lp = queue['leaguePoints']
+            # Main container
+            main_container = ctk.CTkFrame(self.profile_frame, fg_color="transparent")
+            main_container.pack(expand=True, fill="both", padx=20, pady=20)
+            
+            # Summoner name at the top
+            ctk.CTkLabel(
+                main_container,
+                text=summoner_name,
+                font=ctk.CTkFont(size=24, weight="bold")
+            ).pack(pady=(0, 20))
+            
+            # Create horizontal container for ranked and mastery
+            content_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+            content_frame.pack(expand=True, fill="both")
+            
+            # Left side - Ranked Stats
+            ranked_frame = ctk.CTkFrame(content_frame)
+            ranked_frame.pack(side="left", fill="both", expand=True, padx=10)
+            
+            ctk.CTkLabel(
+                ranked_frame,
+                text="Ranked Stats",
+                font=ctk.CTkFont(size=18, weight="bold")
+            ).pack(pady=10)
+            
+            # Format ranked stats
+            for queue in ranked_stats:
+                queue_frame = ctk.CTkFrame(ranked_frame)
+                queue_frame.pack(pady=5, padx=10, fill="x")
+                
+                # Queue type
+                queue_type = self.get_queue_display_name(queue['queueType'])
+                ctk.CTkLabel(
+                    queue_frame,
+                    text=queue_type,
+                    font=ctk.CTkFont(size=14, weight="bold")
+                ).pack(pady=2)
+                
+                # Rank emblem
+                rank_url = f"https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/ranked-emblem/emblem-{queue['tier'].lower()}.png"
+                height = 180
+                width = int(height * 1.8)  # Perfect aspect ratio we found
+                rank_img = self.load_image(rank_url, size=(width, height))
+                if rank_img:
+                    ctk.CTkLabel(queue_frame, text="", image=rank_img).pack(pady=2)
+                
+                # Rank info
+                rank_text = f"{queue['tier']} {queue['rank']} - {queue['leaguePoints']} LP"
+                ctk.CTkLabel(
+                    queue_frame,
+                    text=rank_text,
+                    font=ctk.CTkFont(size=12)
+                ).pack(pady=2)
+                
+                # Win/Loss and Streak
+                wins = queue['wins']
+                losses = queue['losses']
+                total_games = wins + losses
+                winrate = (wins / total_games * 100) if total_games > 0 else 0
+                
+                stats_text = f"W: {wins} L: {losses} ({winrate:.1f}%)"
+                if queue.get('streak', 0) != 0:
+                    streak = queue.get('streak', 0)
+                    streak_text = f" | {abs(streak)}L" if streak < 0 else f" | {streak}W"
+                    stats_text += streak_text
+                
+                ctk.CTkLabel(
+                    queue_frame,
+                    text=stats_text,
+                    font=ctk.CTkFont(size=12),
+                    text_color="#FF7F7F" if winrate < 50 else "green"
+                ).pack(pady=2)
+                
+                # Most played role
+                if 'mostPlayedRole' in queue:
+                    role_text = f"Most played: {queue['mostPlayedRole'].title()}"
+                    ctk.CTkLabel(
+                        queue_frame,
+                        text=role_text,
+                        font=ctk.CTkFont(size=12)
+                    ).pack(pady=2)
+                
+                # Average KDA
+                if 'avgKDA' in queue:
+                    kda = queue['avgKDA']
+                    kda_text = f"Average KDA: {kda['kills']:.1f}/{kda['deaths']:.1f}/{kda['assists']:.1f}"
+                    ctk.CTkLabel(
+                        queue_frame,
+                        text=kda_text,
+                        font=ctk.CTkFont(size=12)
+                    ).pack(pady=2)
+            
+            # Right side - Champion Mastery
+            mastery_frame = ctk.CTkFrame(content_frame)
+            mastery_frame.pack(side="right", fill="both", expand=True, padx=10)
+            
+            ctk.CTkLabel(
+                mastery_frame,
+                text="Champion Mastery",
+                font=ctk.CTkFont(size=18, weight="bold")
+            ).pack(pady=10)
+            
+            # Format mastery data
+            for champion in mastery_data[:3]:
+                champ_frame = ctk.CTkFrame(mastery_frame)
+                champ_frame.pack(pady=5, padx=10, fill="x")
+                
+                champion_id = str(champion['championId'])
+                if champion_id in champion_map:
+                    champion_name = champion_map[champion_id]
+                    # Keep only champion URL, remove mastery URL
+                    champion_url = f"https://ddragon.leagueoflegends.com/cdn/14.22.1/img/champion/{champion_name}.png"
+                    
+                    # Create horizontal layout
+                    info_frame = ctk.CTkFrame(champ_frame, fg_color="transparent")
+                    info_frame.pack(fill="x", padx=5, pady=5)
+                    
+                    # Champion icon
+                    champ_img = self.load_image(champion_url, size=(50, 50))
+                    if champ_img:
+                        ctk.CTkLabel(info_frame, text="", image=champ_img).pack(side="left", padx=5)
+                    
+                    # Champion details without mastery icon for now
+                    details_frame = ctk.CTkFrame(info_frame, fg_color="transparent")
+                    details_frame.pack(side="left", padx=5, fill="x", expand=True)
+                    
+                    # Champion name
+                    ctk.CTkLabel(
+                        details_frame,
+                        text=champion_name,
+                        font=ctk.CTkFont(size=12, weight="bold")
+                    ).pack(anchor="w")
+                    
+                    # Mastery points and level
+                    points_text = f"Mastery {champion['championLevel']} - {champion['championPoints']:,} points"
+                    if 'lastPlayTime' in champion:
+                        from datetime import datetime, timezone
+                        last_played = datetime.fromtimestamp(champion['lastPlayTime'] / 1000, timezone.utc)
+                        points_text += f"\nLast played: {last_played.strftime('%Y-%m-%d')}"
+                    
+                    ctk.CTkLabel(
+                        details_frame,
+                        text=points_text,
+                        font=ctk.CTkFont(size=10)
+                    ).pack(anchor="w")
+            
+            if DEBUG:
+                print("DEBUG - Profile update complete")
+            
+        except Exception as e:
+            if DEBUG:
+                import traceback
+                print(f"Error updating profile: {e}")
+                print(traceback.format_exc())
+
+    def format_ranked_stats(self, ranked_stats: List[Dict[str, Any]], rank_images: Dict[str, Optional[ctk.CTkImage]]) -> None:
+        """Format ranked stats display"""
+        # Define lane icon URLs
+        lane_icons = {
+            "TOP": "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-game-data/global/default/assets/ranked/positions/position-0.png",
+            "JUNGLE": "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-game-data/global/default/assets/ranked/positions/position-1.png",
+            "MIDDLE": "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-game-data/global/default/assets/ranked/positions/position-2.png",
+            "BOTTOM": "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-game-data/global/default/assets/ranked/positions/position-3.png",
+            "UTILITY": "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-game-data/global/default/assets/ranked/positions/position-4.png",
+            "UNKNOWN": "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-game-data/global/default/assets/ranked/positions/position-5.png"
+        }
+        
+        # Load lane icons
+        lane_images = load_images_batch(list(lane_icons.values()), size=(25, 25))
+        
+        # Clear existing ranked info except title
+        for widget in self.ranked_frame.winfo_children():
+            if not isinstance(widget, ctk.CTkLabel) or widget != self.ranked_label:
+                widget.destroy()
+        
+        if not ranked_stats:
+            no_ranked_label = ctk.CTkLabel(
+                self.ranked_frame,
+                text="No ranked data available",
+                font=ctk.CTkFont(size=16)
+            )
+            no_ranked_label.pack(pady=20)
+            return
+        
+        # Show ranked stats for each queue vertically
+        for queue in ranked_stats:
+            queue_frame = ctk.CTkFrame(self.ranked_frame)
+            queue_frame.pack(pady=10, padx=20, fill="x")
+            
+            # Queue type
+            queue_type = get_queue_display_name(queue['queueType'])
+            queue_label = ctk.CTkLabel(
+                queue_frame,
+                text=queue_type,
+                font=ctk.CTkFont(size=16, weight="bold")
+            )
+            queue_label.pack(pady=5)
+            
+            # Create a frame for role and emblem side by side
+            role_emblem_frame = ctk.CTkFrame(queue_frame, fg_color="transparent")
+            role_emblem_frame.pack(pady=5)
+            
+            # Most played role icon
+            most_played_role = queue.get('mostPlayedRole', 'UNKNOWN')
+            role_url = lane_icons.get(most_played_role, lane_icons['UNKNOWN'])
+            if role_url in lane_images and lane_images[role_url]:
+                role_label = ctk.CTkLabel(
+                    role_emblem_frame,
+                    text="",
+                    image=lane_images[role_url]
+                )
+                role_label.pack(side="left", padx=10)
+            
+            # Rank emblem
+            tier = queue['tier'].lower()
+            rank_url = f"https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/ranked-emblem/emblem-{tier}.png"
+            if rank_url in rank_images and rank_images[rank_url]:
+                emblem_label = ctk.CTkLabel(
+                    role_emblem_frame,
+                    text="",
+                    image=rank_images[rank_url]
+                )
+                emblem_label.pack(side="left", padx=10)
+            
+            # Stats
+            stats_frame = ctk.CTkFrame(queue_frame, fg_color="transparent")
+            stats_frame.pack(pady=5)
+            
+            # Rank info
+            rank_text = f"{queue['tier']} {queue['rank']} - {queue['leaguePoints']} LP"
+            rank_info = ctk.CTkLabel(
+                stats_frame,
+                text=rank_text,
+                font=ctk.CTkFont(size=14)
+            )
+            rank_info.pack(pady=2)
+            
+            # Win/Loss
             wins = queue['wins']
             losses = queue['losses']
-            total_games = wins + losses
-            winrate = (wins / total_games * 100) if total_games > 0 else 0
+            winrate = (wins / (wins + losses)) * 100 if wins + losses > 0 else 0
             
-            # Get rank icon
-            icon = get_rank_icon(tier)
-            if icon:
-                icon_label = ctk.CTkLabel(queue_frame, image=icon, text="")
-                icon_label.image = icon  # Keep reference
-                icon_label.pack(side="left", padx=5)
-            
-            # Queue info
-            info_frame = ctk.CTkFrame(queue_frame)
-            info_frame.pack(side="left", fill="x", expand=True)
-            
-            queue_label = ctk.CTkLabel(
-                info_frame,
-                text=f"{queue_type}",
-                font=ctk.CTkFont(size=14, weight="bold")
-            )
-            queue_label.pack(anchor="w")
-            
-            rank_label = ctk.CTkLabel(
-                info_frame,
-                text=f"{tier} {rank} ({lp} LP)"
-            )
-            rank_label.pack(anchor="w")
-            
+            stats_text = f"W: {wins} L: {losses} ({winrate:.1f}%)"
             stats_label = ctk.CTkLabel(
-                info_frame,
-                text=f"{wins}W {losses}L ({winrate:.1f}% WR)"
+                stats_frame,
+                text=stats_text,
+                font=ctk.CTkFont(size=14),
+                text_color="#FF7F7F" if winrate < 50 else "green"
             )
-            stats_label.pack(anchor="w")
+            stats_label.pack(pady=2)
+            
+            # KDA
+            if 'avgKDA' in queue:
+                kda = queue['avgKDA']
+                kda_ratio = (kda['kills'] + kda['assists']) / max(kda['deaths'], 1)
+                kda_text = f"KDA: {kda['kills']:.1f}/{kda['deaths']:.1f}/{kda['assists']:.1f} ({kda_ratio:.2f})"
+                kda_label = ctk.CTkLabel(
+                    stats_frame,
+                    text=kda_text,
+                    font=ctk.CTkFont(size=14)
+                )
+                kda_label.pack(pady=2)
 
     def format_mastery_data(
         self,
         mastery_data: List[Dict[str, Any]],
-        champion_map: Dict[str, str]
+        champion_map: Dict[str, str],
+        champion_images: Dict[str, Optional[ctk.CTkImage]]
     ) -> None:
-        """Format mastery data for display"""
-        if not mastery_data:
-            return "No mastery data available"
-        
-        # Clear previous widgets
+        """Format mastery data display"""
+        # Clear existing mastery info
         for widget in self.mastery_frame.winfo_children():
             widget.destroy()
         
-        # Sort by mastery points
-        sorted_mastery = sorted(
-            mastery_data,
-            key=lambda x: x['championPoints'],
-            reverse=True
-        )[:5]  # Top 5 champions
+        if not mastery_data:
+            no_mastery_label = ctk.CTkLabel(
+                self.mastery_frame,
+                text="No mastery data available",
+                font=ctk.CTkFont(size=16)
+            )
+            no_mastery_label.pack(pady=20)
+            return
         
-        for champ in sorted_mastery:
-            # Create frame for each champion
-            champ_frame = ctk.CTkFrame(self.mastery_frame)
-            champ_frame.pack(fill="x", pady=2)
-            
-            # Get champion info
-            champ_id = str(champ['championId'])
-            champ_name = champion_map.get(champ_id, f"Champion {champ_id}")
-            points = champ['championPoints']
-            level = champ['championLevel']
-            
-            # Get champion icon
-            icon = get_champion_icon(champ_name)
-            if icon:
-                icon_label = ctk.CTkLabel(champ_frame, image=icon, text="")
-                icon_label.image = icon  # Keep reference
-                icon_label.pack(side="left", padx=5)
-            
-            # Champion info
-            info_frame = ctk.CTkFrame(champ_frame)
-            info_frame.pack(side="left", fill="x", expand=True)
-            
-            name_label = ctk.CTkLabel(
-                info_frame,
-                text=f"{champ_name}",
-                font=ctk.CTkFont(size=14, weight="bold")
-            )
-            name_label.pack(anchor="w")
-            
-            stats_label = ctk.CTkLabel(
-                info_frame,
-                text=f"Level {level} • {points:,} points"
-            )
-            stats_label.pack(anchor="w")
+        # Title
+        title_label = ctk.CTkLabel(
+            self.mastery_frame,
+            text="Top Champions",
+            font=ctk.CTkFont(size=18, weight="bold")
+        )
+        title_label.pack(pady=(0, 10))
+        
+        # Show top 3 champions
+        for champion in mastery_data[:3]:
+            champion_id = str(champion['championId'])
+            if champion_id in champion_map:
+                champion_name = champion_map[champion_id]
+                mastery_points = champion['championPoints']
+                mastery_level = champion['championLevel']
+                
+                # Create frame for this champion
+                champ_frame = ctk.CTkFrame(self.mastery_frame)
+                champ_frame.pack(pady=5, padx=10, fill="x")
+                
+                # Add champion icon
+                champion_url = f"https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/{champion_name}.png"
+                if champion_url in champion_images and champion_images[champion_url]:
+                    icon_label = ctk.CTkLabel(
+                        champ_frame,
+                        text="",
+                        image=champion_images[champion_url]
+                    )
+                    icon_label.pack(side="left", padx=5, pady=5)
+                
+                # Add champion info
+                info_frame = ctk.CTkFrame(champ_frame, fg_color="transparent")
+                info_frame.pack(side="left", padx=10, fill="x", expand=True)
+                
+                name_label = ctk.CTkLabel(
+                    info_frame,
+                    text=champion_name,
+                    font=ctk.CTkFont(size=14, weight="bold")
+                )
+                name_label.pack(anchor="w")
+                
+                mastery_label = ctk.CTkLabel(
+                    info_frame,
+                    text=f"Mastery {mastery_level} - {mastery_points:,} points",
+                    font=ctk.CTkFont(size=12)
+                )
+                mastery_label.pack(anchor="w")
 
-    def format_match_history(
+    def update_match_history(
         self,
-        matches: List[Dict[str, Any]],
+        match_history: List[Dict[str, Any]],
         puuid: str,
         champion_map: Dict[str, str],
         item_data: Dict[str, Any]
     ) -> None:
-        """Format and display match history"""
-        # Clear previous matches
-        for widget in self.matches_container.winfo_children():
-            widget.destroy()
+        """Update match history tab"""
+        if DEBUG:
+            total_start = time.time()
         
-        if not matches:
-            no_games = ctk.CTkLabel(
-                self.matches_container,
-                text="No recent games found"
-            )
-            no_games.pack(pady=5)
-            return
+        # Show loading indicator
+        loading = LoadingIndicator(self.matches_frame, "Loading match data...")
         
-        for match in matches:
-            # Get player data from match
-            player = next(p for p in match['info']['participants'] if p['puuid'] == puuid)
+        try:
+            # Collect all URLs
+            item_urls = set()
+            champion_urls = set()
             
-            # Create match frame
-            match_frame = ctk.CTkFrame(self.matches_container)
-            match_frame.pack(pady=5, padx=10, fill="x")
+            for match in match_history:
+                try:
+                    player_data = next(
+                        p for p in match['info']['participants']
+                        if p['puuid'] == puuid
+                    )
+                    
+                    # Add champion icon URL
+                    champion_id = str(player_data['championId'])
+                    if champion_id in champion_map:
+                        champion_name = champion_map[champion_id]
+                        champion_url = f"https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/{champion_name}.png"
+                        champion_urls.add(champion_url)
+                    
+                    # Add item URLs
+                    for item_slot in range(0, 7):
+                        item_id = str(player_data.get(f'item{item_slot}', 0))
+                        if item_id != "0" and item_id in item_data['data']:
+                            item_url = f"https://ddragon.leagueoflegends.com/cdn/13.24.1/img/item/{item_id}.png"
+                            item_urls.add(item_url)
+                except Exception as e:
+                    if DEBUG:
+                        print(f"Error collecting URLs from match: {e}")
+                    continue
             
-            # Result and champion
-            result = "Victory" if player['win'] else "Defeat"
-            result_color = "green" if player['win'] else "red"
-            champ_id = str(player['championId'])
-            champ_name = champion_map.get(champ_id, f"Champion {champ_id}")
+            if DEBUG:
+                print(f"\nCollected {len(champion_urls)} champion URLs and {len(item_urls)} item URLs")
             
-            # Get champion icon
-            icon = get_champion_icon(champ_name, size=(40, 40))
-            if icon:
-                icon_label = ctk.CTkLabel(match_frame, image=icon, text="")
-                icon_label.image = icon  # Keep reference
-                icon_label.pack(side="left", padx=5)
+            loading.update_text("Loading champion icons...")
+            champion_images = load_images_batch(list(champion_urls), size=(30, 30))
             
-            # Create info frame
-            info_frame = ctk.CTkFrame(match_frame)
-            info_frame.pack(side="left", fill="x", expand=True, padx=5)
+            loading.update_text("Loading item icons...")
+            item_images = load_images_batch(list(item_urls), size=(25, 25))
             
-            # Result and champion name
-            result_label = ctk.CTkLabel(
-                info_frame,
-                text=f"{result} - {champ_name}",
-                text_color=result_color,
-                font=ctk.CTkFont(weight="bold")
-            )
-            result_label.pack(anchor="w")
-            
-            # Stats frame
-            stats_frame = ctk.CTkFrame(info_frame)
-            stats_frame.pack(fill="x", expand=True)
-            
-            # KDA and CS
-            kda = f"{player['kills']}/{player['deaths']}/{player['assists']}"
-            kda_ratio = (player['kills'] + player['assists']) / max(1, player['deaths'])
-            cs = player['totalMinionsKilled'] + player.get('neutralMinionsKilled', 0)
-            minutes = match['info']['gameDuration'] / 60
-            cs_per_min = cs / minutes
-            
-            stats_label = ctk.CTkLabel(
-                stats_frame,
-                text=f"KDA: {kda} ({kda_ratio:.2f}) • CS: {cs} ({cs_per_min:.1f}/min)",
-                font=ctk.CTkFont(size=12)
-            )
-            stats_label.pack(side="left", padx=10)
-            
-            # Items frame
-            items_frame = ctk.CTkFrame(match_frame)
-            items_frame.pack(side="right", padx=10)
-            
-            # Add item icons
-            for i in range(6):
-                item_id = str(player.get(f'item{i}', 0))
-                if item_id != "0" and item_id in item_data:
-                    item_icon = get_item_icon(item_id)
-                    if item_icon:
-                        item_label = ctk.CTkLabel(
-                            items_frame,
-                            image=item_icon,
+            loading.update_text("Creating match history...")
+            # Now create the match history UI with preloaded images
+            for match in match_history:
+                try:
+                    # Create frame for this match
+                    match_frame = ctk.CTkFrame(self.matches_frame)
+                    match_frame.pack(pady=5, padx=10, fill="x")
+                    
+                    # Find player data
+                    player_data = next(
+                        p for p in match['info']['participants']
+                        if p['puuid'] == puuid
+                    )
+                    
+                    # Format match info
+                    champion_id = str(player_data['championId'])
+                    champion_name = champion_map.get(champion_id, 'Unknown')
+                    kda = f"{player_data['kills']}/{player_data['deaths']}/{player_data['assists']}"
+                    cs = player_data['totalMinionsKilled']
+                    duration = match['info']['gameDuration'] // 60
+                    result = "Victory" if player_data['win'] else "Defeat"
+                    
+                    # Add champion icon
+                    champion_url = f"https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/{champion_name}.png"
+                    if champion_url in champion_images and champion_images[champion_url]:
+                        champion_icon = ctk.CTkLabel(
+                            match_frame,
                             text="",
-                            cursor="hand2"
+                            image=champion_images[champion_url]
                         )
-                        item_label.image = item_icon  # Keep reference
-                        item_label.pack(side="left", padx=2)
-                        
-                        # Add tooltip with item name
-                        item_name = item_data[item_id]['name']
-                        tooltip_text = f"{item_name}"
-                        item_label.bind("<Enter>", lambda e, text=tooltip_text: self.show_tooltip(e, text))
-                        item_label.bind("<Leave>", self.hide_tooltip)
+                        champion_icon.pack(side="left", padx=5)
+                    
+                    # Create result label
+                    result_label = ctk.CTkLabel(
+                        match_frame,
+                        text=result,
+                        text_color="green" if player_data['win'] else "red"
+                    )
+                    result_label.pack(side="left", padx=10)
+                    
+                    # Create champion label
+                    champion_label = ctk.CTkLabel(
+                        match_frame,
+                        text=f"Champion: {champion_name}"
+                    )
+                    champion_label.pack(side="left", padx=10)
+                    
+                    # Create KDA label
+                    kda_label = ctk.CTkLabel(
+                        match_frame,
+                        text=f"KDA: {kda}"
+                    )
+                    kda_label.pack(side="left", padx=10)
+                    
+                    # Create CS label
+                    cs_label = ctk.CTkLabel(
+                        match_frame,
+                        text=f"CS: {cs}"
+                    )
+                    cs_label.pack(side="left", padx=10)
+                    
+                    # Create duration label
+                    duration_label = ctk.CTkLabel(
+                        match_frame,
+                        text=f"Duration: {duration}m"
+                    )
+                    duration_label.pack(side="left", padx=10)
+                    
+                    # Create items frame
+                    items_frame = ctk.CTkFrame(match_frame, fg_color="transparent")
+                    items_frame.pack(side="right", padx=10)
+                    
+                    # Add item icons
+                    for item_slot in range(0, 7):
+                        item_id = str(player_data.get(f'item{item_slot}', 0))
+                        if item_id != "0" and item_id in item_data['data']:
+                            item_url = f"https://ddragon.leagueoflegends.com/cdn/13.24.1/img/item/{item_id}.png"
+                            if item_url in item_images and item_images[item_url]:
+                                item_label = ctk.CTkLabel(
+                                    items_frame,
+                                    text="",
+                                    image=item_images[item_url]
+                                )
+                                item_label.pack(side="left", padx=2)
+                
+                except Exception as e:
+                    if DEBUG:
+                        print(f"Error formatting match: {e}")
+                    continue
+            
+            if DEBUG:
+                total_end = time.time()
+                print(f"\nTotal match history update time: {total_end - total_start:.2f} seconds")
+            
+            # Remove loading indicator
+            loading.destroy()
+            
+        except Exception as e:
+            if DEBUG:
+                print(f"Error updating match history: {e}")
+            loading.update_text(f"Error: {str(e)}")
+            self.after(2000, loading.destroy)
 
-    def go_back(self) -> None:
-        """Return to search page"""
-        # Clear current stats
-        self.summoner_name.configure(text="")
-        self.ranked_label.configure(text="Ranked Stats")
-        self.mastery_label.configure(text="Champion Mastery")
-        
-        # Let the controller handle the page switch
-        self.controller.show_search_page()
+    def get_queue_display_name(self, queue_type: str) -> str:
+        """Convert queue type to display name"""
+        queue_names = {
+            'RANKED_SOLO_5x5': 'Solo/Duo',
+            'RANKED_FLEX_SR': 'Flex 5v5',
+            'RANKED_TFT': 'TFT',
+            'RANKED_TFT_DOUBLE_UP': 'TFT Double Up',
+            'RANKED_TFT_TURBO': 'Hyper Roll'
+        }
+        return queue_names.get(queue_type, queue_type.replace('_', ' ').title())
 
-    def show_tooltip(self, event, text: str) -> None:
-        """Show tooltip on hover"""
-        x, y, _, _ = event.widget.bbox("insert")
-        x += event.widget.winfo_rootx() + 25
-        y += event.widget.winfo_rooty() + 20
-        
-        # Create tooltip window
-        self.tooltip = tk.Toplevel(self)
-        self.tooltip.wm_overrideredirect(True)
-        self.tooltip.wm_geometry(f"+{x}+{y}")
-        
-        # Configure tooltip style
-        frame = tk.Frame(
-            self.tooltip,
-            background="#1a1a1a",
-            borderwidth=1,
-            relief="solid"
-        )
-        frame.pack(fill="both", expand=True)
-        
-        label = tk.Label(
-            frame,
-            text=text,
-            justify='left',
-            background="#1a1a1a",
-            foreground="#e0e0e0",
-            font=("Segoe UI", 10),
-            wraplength=250,
-            padx=8,
-            pady=4
-        )
-        label.pack()
-        
-        # Add subtle shadow effect
-        self.tooltip.lift()
-        self.tooltip.attributes('-alpha', 0.95)
-
-    def hide_tooltip(self, event=None) -> None:
-        """Hide tooltip"""
-        if hasattr(self, 'tooltip'):
-            self.tooltip.destroy()
+def get_queue_display_name(queue_type: str) -> str:
+    """Convert queue type to display name"""
+    queue_names = {
+        'RANKED_SOLO_5x5': 'Solo/Duo',
+        'RANKED_FLEX_SR': 'Flex 5v5',
+        'RANKED_TFT': 'TFT',
+        'RANKED_TFT_DOUBLE_UP': 'TFT Double Up',
+        'RANKED_TFT_TURBO': 'Hyper Roll'
+    }
+    return queue_names.get(queue_type, queue_type.replace('_', ' ').title())

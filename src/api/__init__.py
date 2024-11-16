@@ -1,29 +1,26 @@
 from .riot_api import (
-    get_summoner_data,
+    get_summoner_by_name,
     get_ranked_stats,
     get_mastery_champions,
     get_match_history,
-    get_live_game
+    get_match_details
 )
 
 from .data_dragon import (
     get_latest_version,
-    get_champion_data,
-    get_rune_data,
-    get_item_data
+    get_champion_map,
+    get_item_data,
+    get_asset_url
 )
 
 __all__ = [
-    # Riot API functions
-    'get_summoner_data',
+    'get_summoner_by_name',
     'get_ranked_stats',
     'get_mastery_champions',
     'get_match_history',
-    'get_live_game',
-    
-    # Data Dragon functions
+    'get_match_details',
     'get_latest_version',
-    'get_champion_data',
-    'get_rune_data',
-    'get_item_data'
+    'get_champion_map',
+    'get_item_data',
+    'get_asset_url'
 ]

@@ -3,4 +3,5 @@ requests>=2.31.0
 pillow>=10.0.0
 typing-extensions>=4.7.1
 python-dotenv>=1.0.0  # For handling environment variables (API key)
+aiohttp>=3.9.1  # For asynchronous HTTP requests
 # to install all requirements, please use pip install -r requirements.txt
