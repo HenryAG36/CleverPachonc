@@ -1,7 +1,14 @@
-customtkinter>=5.2.0
+# Web backend
+flask>=2.3.0
+flask-cors>=4.0.0
+aiohttp>=3.9.1
 requests>=2.31.0
-pillow>=10.0.0
-typing-extensions>=4.7.1
-python-dotenv>=1.0.0  # For handling environment variables (API key)
-aiohttp>=3.9.1  # For asynchronous HTTP requests
-# to install all requirements, please use pip install -r requirements.txt
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.0.0
+
+# ── Legacy desktop app (src/) ─────────────────────────────────────────────
+# customtkinter>=5.2.0
+# pillow>=10.0.0
+# typing-extensions>=4.7.1

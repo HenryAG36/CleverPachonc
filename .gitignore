@@ -26,6 +26,10 @@ pythonenv*/
 .env.local
 .env.*.local
 
+# Node
+node_modules/
+frontend/dist/
+
 # Distribution / packaging
 dist/
 build/
