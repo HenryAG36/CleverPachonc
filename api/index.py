@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import asyncio
 from datetime import datetime, timezone
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from backend.riot_api import get_summoner_data_async
@@ -25,6 +25,8 @@ from backend.utils.exceptions import (
 
 app = Flask(__name__)
 CORS(app)
+
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 # Module-level cache — reused across warm invocations on Vercel
 _champion_map = None
@@ -161,6 +163,21 @@ def summoner():
 @app.route("/api/health")
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    if not os.path.isdir(STATIC_DIR):
+        return "Frontend not built", 404
+    file_path = os.path.join(STATIC_DIR, path)
+    if path and os.path.isfile(file_path):
+        return send_from_directory(STATIC_DIR, path)
+    # Return 404 for missing assets (e.g. .js/.css) instead of falling back
+    # to index.html — prevents wrong MIME type being served and cached.
+    if path and "." in os.path.basename(path):
+        return "Not found", 404
+    return send_from_directory(STATIC_DIR, "index.html")
 
 
 if __name__ == "__main__":
