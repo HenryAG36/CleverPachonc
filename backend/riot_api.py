@@ -175,11 +175,16 @@ async def get_summoner_data_async(
         # ── Step 1: resolve summoner ────────────────────────────────
         summoner = await _fetch_summoner(game_name, tag_line, region, api_key, session)
         puuid = summoner["puuid"]
-        summoner_id = summoner["id"]
+        summoner_id = summoner.get("id")
 
         # ── Step 2: ranked + mastery + match IDs (concurrent) ───────
+        async def _ranked():
+            if not summoner_id:
+                return []
+            return await _get(session, f"{platform_url}/lol/league/v4/entries/by-summoner/{summoner_id}", headers) or []
+
         ranked_data, mastery_data, match_ids = await asyncio.gather(
-            _get(session, f"{platform_url}/lol/league/v4/entries/by-summoner/{summoner_id}", headers),
+            _ranked(),
             _get(session, f"{platform_url}/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}", headers),
             _get(
                 session,
