@@ -30,7 +30,7 @@ export default function RankedCard({ queue }) {
 
   return (
     <div className="card">
-      <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wider">
+      <p className="section-title">
         {QUEUE_LABELS[queueType] ?? queueType}
       </p>
 
@@ -45,7 +45,7 @@ export default function RankedCard({ queue }) {
           <p className="text-xl font-bold" style={{ color: tierColor }}>
             {tier} {rank}
           </p>
-          <p className="text-gray-300 text-sm">{leaguePoints} LP</p>
+          <p className="text-apple-text-secondary text-sm">{leaguePoints} LP</p>
         </div>
       </div>
 
@@ -53,21 +53,26 @@ export default function RankedCard({ queue }) {
         <div className="stat-row">
           <span className="stat-label">W / L</span>
           <span>
-            <span className="text-green-400">{wins}W</span>
-            {' '}<span className="text-red-400">{losses}L</span>
-            {' '}<span className="text-gray-400">({winrate}%)</span>
+            <span className="text-apple-green">{wins}W</span>
+            {' '}<span className="text-apple-red">{losses}L</span>
+            {' '}<span className="text-apple-text-secondary">({winrate}%)</span>
           </span>
         </div>
 
-        {/* Win rate bar */}
-        <div className="h-1.5 bg-lol-border rounded-full overflow-hidden">
-          <div className="h-full bg-blue-500 rounded-full" style={{ width: `${winrate}%` }} />
+        <div className="h-1.5 bg-apple-card2 rounded-full overflow-hidden">
+          <div className="h-full bg-apple-blue rounded-full" style={{ width: `${winrate}%` }} />
         </div>
 
         {streak !== 0 && (
           <div className="stat-row">
             <span className="stat-label">Streak</span>
-            <span className={`font-semibold ${streak > 0 ? 'text-blue-400' : 'text-red-400'}`}>
+            <span
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                streak > 0
+                  ? 'bg-apple-green/10 text-apple-green'
+                  : 'bg-apple-red/10 text-apple-red'
+              }`}
+            >
               {Math.abs(streak)}{streak > 0 ? 'W' : 'L'} streak
             </span>
           </div>
@@ -85,7 +90,10 @@ export default function RankedCard({ queue }) {
             <span className="stat-label">Avg KDA</span>
             <span>
               {avgKDA.kills.toFixed(1)} / {avgKDA.deaths.toFixed(1)} / {avgKDA.assists.toFixed(1)}
-              {' '}<span className="text-lol-gold">({kdaRatio})</span>
+              {' '}
+              <span className={parseFloat(kdaRatio) >= 3 ? 'text-apple-yellow' : 'text-apple-text-secondary'}>
+                ({kdaRatio})
+              </span>
             </span>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts'
 
 export default function ChampionStats({ stats, ddVersion }) {
   const [sortKey, setSortKey] = useState('games')
@@ -29,38 +29,38 @@ export default function ChampionStats({ stats, ddVersion }) {
 
   return (
     <div className="space-y-5">
-      {/* Bar chart */}
       <div className="card">
-        <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider">Win rate by champion (≥2 games)</p>
+        <p className="section-title">Win rate by champion (≥2 games)</p>
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-            <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 11 }} />
-            <YAxis domain={[0, 100]} tick={{ fill: '#9ca3af', fontSize: 11 }} />
+            <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} />
+            <YAxis domain={[0, 100]} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} />
             <Tooltip
-              contentStyle={{ background: '#1a2035', border: '1px solid #2d3748', borderRadius: 8 }}
-              labelStyle={{ color: '#c89b3c' }}
+              contentStyle={{ background: '#2c2c2e', border: 'none', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}
+              labelStyle={{ color: '#ffffff', fontWeight: 600 }}
+              itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
               formatter={v => [`${v}%`, 'Win rate']}
             />
-            <Bar dataKey="winrate" radius={[4, 4, 0, 0]}>
-              {chartData.map((entry, i) => (
-                <Cell key={i} fill={entry.winrate >= 50 ? '#3b82f6' : '#ef4444'} />
+            <ReferenceLine y={50} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
+            <Bar dataKey="winrate" radius={[6, 6, 0, 0]}>
+              {chartData.map((entry) => (
+                <Cell key={entry.name} fill={entry.winrate >= 50 ? '#30D158' : '#FF453A'} />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Table */}
       <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider border-b border-lol-border">
+            <tr className="text-left text-xs uppercase tracking-wider border-b border-apple-separator" style={{ color: 'rgba(255,255,255,0.4)' }}>
               <th className="pb-2 pr-3">Champion</th>
               {cols.map(c => (
                 <th
                   key={c.key}
-                  className={`pb-2 px-2 text-right cursor-pointer hover:text-lol-gold transition-colors ${
-                    sortKey === c.key ? 'text-lol-gold' : ''
+                  className={`pb-2 px-2 text-right cursor-pointer transition-colors ${
+                    sortKey === c.key ? 'text-apple-blue' : 'hover:text-white'
                   }`}
                   onClick={() => setSortKey(c.key)}
                 >
@@ -70,10 +70,10 @@ export default function ChampionStats({ stats, ddVersion }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r, i) => {
+            {rows.map((r) => {
               const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/champion/${r.name}.png`
               return (
-                <tr key={i} className="border-b border-lol-border/50 hover:bg-white/5 transition-colors">
+                <tr key={r.name} className="border-b border-apple-separator hover:bg-white/5 transition-colors">
                   <td className="py-2 pr-3">
                     <div className="flex items-center gap-2">
                       <img src={iconUrl} alt={r.name} className="w-7 h-7 rounded"
@@ -82,22 +82,22 @@ export default function ChampionStats({ stats, ddVersion }) {
                     </div>
                   </td>
                   <td className="px-2 text-right">{r.games}</td>
-                  <td className={`px-2 text-right font-semibold ${r.winrate >= 50 ? 'text-blue-400' : 'text-red-400'}`}>
+                  <td className={`px-2 text-right font-semibold ${r.winrate >= 50 ? 'text-apple-green' : 'text-apple-red'}`}>
                     {r.winrate.toFixed(1)}%
                   </td>
-                  <td className={`px-2 text-right ${r.kda >= 3 ? 'text-lol-gold' : ''}`}>
+                  <td className={`px-2 text-right ${r.kda >= 3 ? 'text-apple-yellow' : ''}`}>
                     {r.kda.toFixed(2)}
                   </td>
-                  <td className="px-2 text-right text-gray-300">{r.avg_kills.toFixed(1)}</td>
-                  <td className="px-2 text-right text-gray-300">{r.avg_deaths.toFixed(1)}</td>
-                  <td className="px-2 text-right text-gray-300">{r.avg_assists.toFixed(1)}</td>
-                  <td className="px-2 text-right text-gray-300">{r.cs_per_min.toFixed(1)}</td>
+                  <td className="px-2 text-right text-apple-text-secondary">{r.avg_kills.toFixed(1)}</td>
+                  <td className="px-2 text-right text-apple-text-secondary">{r.avg_deaths.toFixed(1)}</td>
+                  <td className="px-2 text-right text-apple-text-secondary">{r.avg_assists.toFixed(1)}</td>
+                  <td className="px-2 text-right text-apple-text-secondary">{r.cs_per_min.toFixed(1)}</td>
                 </tr>
               )
             })}
           </tbody>
         </table>
-        <p className="text-xs text-gray-500 mt-3">Click a column header to sort</p>
+        <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>Click a column header to sort</p>
       </div>
     </div>
   )

@@ -1,24 +1,24 @@
 export default function PrivacyModal({ onClose }) {
   return (
     <div
-      className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="card max-w-lg w-full max-h-[80vh] overflow-y-auto space-y-4">
+      <div className="bg-apple-card rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto space-y-4 shadow-lg">
         <div className="flex justify-between items-start">
-          <h2 className="text-lg font-bold text-lol-gold">Privacy Policy</h2>
+          <h2 className="text-lg font-semibold text-white">Privacy Policy</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white text-2xl leading-none ml-4"
+            className="bg-apple-card2 hover:bg-apple-card3 text-apple-text-secondary hover:text-white rounded-xl text-2xl leading-none ml-4 w-8 h-8 flex items-center justify-center transition-colors"
             aria-label="Close"
           >
             ×
           </button>
         </div>
 
-        <p className="text-xs text-gray-500">Last updated: April 22, 2026</p>
+        <p className="text-xs text-apple-text-secondary">Last updated: April 22, 2026</p>
 
-        <div className="text-sm text-gray-300 space-y-4">
+        <div className="text-sm text-apple-text-secondary space-y-4">
           <section>
             <h3 className="font-semibold text-white mb-1">What we collect</h3>
             <p>
@@ -47,7 +47,7 @@ export default function PrivacyModal({ onClose }) {
                 href="https://www.riotgames.com/en/terms-of-service"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lol-gold hover:underline"
+                className="text-apple-blue hover:underline"
               >
                 Riot Games Terms of Service
               </a>
@@ -74,8 +74,7 @@ export default function PrivacyModal({ onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-2 py-2 rounded text-sm bg-lol-card border border-lol-border
-                     text-gray-400 hover:text-white hover:border-lol-gold transition-colors"
+          className="w-full mt-2 py-2 rounded-xl text-sm bg-apple-card2 hover:bg-apple-card3 text-apple-text-secondary hover:text-white transition-colors"
         >
           Close
         </button>

@@ -12,12 +12,11 @@ export default function StatsView({ data }) {
   const hasChampStats = champion_stats && Object.keys(champion_stats).length > 0
 
   return (
-    <div className="space-y-6 mt-2">
+    <div className="space-y-8 mt-6">
       <ProfileHeader summoner={summoner} ddVersion={dd_version} />
 
       {hasMatches && <WinRateChart matches={matches} />}
 
-      {/* Ranked + Mastery */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h2 className="section-title">Ranked</h2>
@@ -26,7 +25,7 @@ export default function StatsView({ data }) {
               {ranked.map(q => <RankedCard key={q.queueType} queue={q} />)}
             </div>
           ) : (
-            <div className="card text-gray-400 text-sm text-center py-8">
+            <div className="card text-apple-text-secondary text-sm text-center py-10">
               No ranked data this season
             </div>
           )}
@@ -38,7 +37,6 @@ export default function StatsView({ data }) {
         </div>
       </div>
 
-      {/* Match history */}
       {hasMatches && (
         <div>
           <h2 className="section-title">Recent Matches</h2>
@@ -46,7 +44,6 @@ export default function StatsView({ data }) {
         </div>
       )}
 
-      {/* Champion stats */}
       {hasChampStats && (
         <div>
           <h2 className="section-title">Champion Stats</h2>
