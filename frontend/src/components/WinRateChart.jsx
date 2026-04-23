@@ -16,7 +16,7 @@ export default function WinRateChart({ matches }) {
     <div className="card mt-4">
       <div className="flex items-center gap-6">
         <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
-          <PieChart width={180} height={180}>
+          <PieChart width={180} height={180} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
             <Pie
               data={ringData}
               cx={90}

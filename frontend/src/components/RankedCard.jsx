@@ -27,6 +27,10 @@ export default function RankedCard({ queue }) {
   const tierColor = TIER_COLORS[tier?.toUpperCase()] ?? '#ffffff'
   const emblemUrl =
     `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/ranked-emblem/emblem-${tier?.toLowerCase()}.png`
+  const NO_DIVISION_TIERS = ['MASTER', 'GRANDMASTER', 'CHALLENGER']
+  const tierUpper = tier?.toUpperCase()
+  const displayTier = tier ? tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase() : ''
+  const displayRank = NO_DIVISION_TIERS.includes(tierUpper) ? '' : rank
 
   return (
     <div className="card">
@@ -38,12 +42,12 @@ export default function RankedCard({ queue }) {
         <img
           src={emblemUrl}
           alt={tier}
-          className="w-20 h-auto"
+          className="w-28 h-auto"
           onError={e => { e.target.style.display = 'none' }}
         />
         <div>
           <p className="text-xl font-bold" style={{ color: tierColor }}>
-            {tier} {rank}
+            {displayTier}{displayRank ? ` ${displayRank}` : ''}
           </p>
           <p className="text-apple-text-secondary text-sm">{leaguePoints} LP</p>
         </div>
