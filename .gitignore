@@ -29,6 +29,7 @@ pythonenv*/
 # Node
 node_modules/
 frontend/dist/
+api/static/
 
 # Distribution / packaging
 dist/
