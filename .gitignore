@@ -48,6 +48,7 @@ desktop.ini
 # Cache directories
 src/cache/*
 !src/cache/.gitkeep
+backend/cache/*.json
 .cache/
 .pytest_cache/
 

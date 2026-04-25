@@ -1,11 +1,11 @@
 import { useState } from 'react'
+import MetaTierBadge from './MetaTierBadge'
+import BuildComparison from './BuildComparison'
+import MatchupTable from './MatchupTable'
 
 const ROLE_DISPLAY = {
-  TOP: 'Top',
-  JUNGLE: 'Jungle',
-  MIDDLE: 'Mid',
-  BOTTOM: 'ADC',
-  UTILITY: 'Support',
+  TOP: 'Top', JUNGLE: 'Jungle', MIDDLE: 'Mid',
+  BOTTOM: 'ADC', UTILITY: 'Support',
 }
 
 export default function AICoach({ data }) {
@@ -47,7 +47,7 @@ export default function AICoach({ data }) {
           <div className="text-center">
             <p className="text-sm font-medium mb-1">Personalized coaching</p>
             <p className="text-apple-text-secondary text-xs max-w-xs">
-              AI analysis of your last 20 games — strengths, weaknesses, and a clear path to climb
+              AI analysis of your last 20 games — strengths, weaknesses, meta comparison, and a clear path to climb
             </p>
           </div>
           <button onClick={analyze} className="apple-btn hover:opacity-80 active:scale-95">
@@ -94,6 +94,64 @@ export default function AICoach({ data }) {
             </div>
           )}
 
+          {/* Build comparisons from meta */}
+          {coaching.meta?.per_champ_meta && (() => {
+            const entries = Object.entries(coaching.meta.per_champ_meta)
+              .filter(([, cm]) => cm.build_gaps?.length > 0)
+              .slice(0, 2)
+            if (!entries.length) return null
+            return (
+              <div className="card">
+                <p className="section-title">Build Comparison</p>
+                <div className="space-y-3">
+                  {entries.map(([champ]) => (
+                    <BuildComparison
+                      key={champ}
+                      championName={champ}
+                      playerItems={data.champion_stats?.[champ]?.core_items}
+                      metaItems={coaching.meta.per_champ_meta[champ]?.build_gaps}
+                      ddVersion={data.dd_version}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Matchup insights */}
+          {coaching.meta?.matchup_insights?.length > 0 && (
+            <MatchupTable
+              matchupInsights={coaching.meta.matchup_insights}
+              ddVersion={data.dd_version}
+            />
+          )}
+
+          {/* Pool vs meta */}
+          {coaching.meta?.meta_picks?.length > 0 && (
+            <div className="card">
+              <p className="section-title">Your Pool vs the Meta</p>
+              <div className="space-y-0">
+                {coaching.meta.meta_picks.map((pick, i) => {
+                  const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${data.dd_version}/img/champion/${pick.name}.png`
+                  return (
+                    <div key={i} className="stat-row items-center">
+                      <div className="flex items-center gap-2">
+                        <img src={iconUrl} alt={pick.name} className="w-7 h-7 rounded"
+                          onError={e => { e.target.style.display = 'none' }} />
+                        <span className="text-sm font-medium">{pick.name}</span>
+                        <MetaTierBadge tier={pick.tier} wr={pick.wr} size="xs" />
+                      </div>
+                      <span className="text-xs text-apple-text-secondary">
+                        {ROLE_DISPLAY[pick.role] ?? pick.role}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              <p className="text-[10px] text-apple-text-tertiary mt-2">Meta win rates at your tier this patch</p>
+            </div>
+          )}
+
           {/* Strength */}
           {coaching.strength && (
             <div className="card">
@@ -114,9 +172,15 @@ export default function AICoach({ data }) {
                   <div className="stat-row">
                     <span className="stat-label">Keep</span>
                     <div className="flex gap-1.5 flex-wrap justify-end">
-                      {coaching.champion_pool.keep.map(c => (
-                        <span key={c} className="text-xs bg-apple-green/10 text-apple-green px-2.5 py-0.5 rounded-full font-medium">{c}</span>
-                      ))}
+                      {coaching.champion_pool.keep.map(c => {
+                        const champMeta = coaching.meta?.per_champ_meta?.[c]
+                        return (
+                          <span key={c} className="text-xs bg-apple-green/10 text-apple-green px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
+                            {c}
+                            {champMeta && <MetaTierBadge tier={champMeta.tier} size="xs" />}
+                          </span>
+                        )
+                      })}
                     </div>
                   </div>
                 )}

@@ -23,6 +23,12 @@ from backend.data_dragon import get_champion_map, get_item_data, get_latest_vers
 from backend.analysis.match_analysis import analyze_match_history
 from backend.analysis.champion_stats import analyze_champion_stats
 from backend.ai_coach import generate_coaching
+
+try:
+    from backend.analysis.meta_analysis import analyze_meta_gaps as _analyze_meta_gaps
+    _META_AVAILABLE = True
+except Exception:
+    _META_AVAILABLE = False
 from backend.utils.exceptions import (
     APIError, AuthError, ConfigError, NetworkError, NotFoundError, RateLimitError,
 )
@@ -113,6 +119,20 @@ def summoner():
         except StopIteration:
             continue
         champ_id = str(p["championId"])
+        player_position = p.get("teamPosition", "")
+
+        # Find the enemy in the same position for matchup analysis
+        enemy_carry: str | None = None
+        if player_position:
+            enemy_carry = next(
+                (
+                    champion_map.get(str(x["championId"]), "Unknown")
+                    for x in match["info"]["participants"]
+                    if x["teamId"] != p["teamId"] and x.get("teamPosition") == player_position
+                ),
+                None,
+            )
+
         formatted_matches.append({
             "champion": champion_map.get(champ_id, "Unknown"),
             "championId": p["championId"],
@@ -123,8 +143,9 @@ def summoner():
             "assists": p["assists"],
             "cs": p["totalMinionsKilled"] + p.get("neutralMinionsKilled", 0),
             "duration": match["info"]["gameDuration"] // 60,
-            "role": p.get("teamPosition", ""),
+            "role": player_position,
             "items": [p.get(f"item{i}", 0) for i in range(7)],
+            "enemy_carry": enemy_carry,
         })
 
     # ── Run analysis on raw match data ───────────────────────────────
@@ -148,6 +169,16 @@ def summoner():
         if k not in ("game_durations", "recent_performance")
     }
 
+    # Best-effort meta pre-analysis for PreSessionCard (no API cost, uses cache)
+    meta_summary: dict | None = None
+    if _META_AVAILABLE and champ_stats:
+        try:
+            solo = next((q for q in ranked if q.get("queueType") == "RANKED_SOLO_5x5"), None)
+            tier = solo.get("tier", "DEFAULT") if solo else "DEFAULT"
+            meta_summary = _analyze_meta_gaps(champ_stats, serialised_analysis, formatted_matches, tier)
+        except Exception:
+            pass
+
     return jsonify({
         "dd_version": dd_version,
         "summoner": {
@@ -161,6 +192,7 @@ def summoner():
         "matches": formatted_matches,
         "champion_stats": champ_stats,
         "match_analysis": serialised_analysis,
+        "meta": meta_summary,
     })
 
 

@@ -5,9 +5,10 @@ import MasteryCard from './MasteryCard'
 import MatchHistory from './MatchHistory'
 import ChampionStats from './ChampionStats'
 import AICoach from './AICoach'
+import PreSessionCard from './PreSessionCard'
 
 export default function StatsView({ data }) {
-  const { dd_version, summoner, ranked, mastery, matches, champion_stats } = data
+  const { dd_version, summoner, ranked, mastery, matches, champion_stats, meta } = data
   const hasRanked = ranked?.length > 0
   const hasMatches = matches?.length > 0
   const hasChampStats = champion_stats && Object.keys(champion_stats).length > 0
@@ -17,6 +18,9 @@ export default function StatsView({ data }) {
       <ProfileHeader summoner={summoner} ddVersion={dd_version} />
 
       {hasMatches && <WinRateChart matches={matches} />}
+
+      {/* Pre-Session Advisor — shown when meta data is available */}
+      {meta && <PreSessionCard meta={meta} ddVersion={dd_version} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -48,7 +52,7 @@ export default function StatsView({ data }) {
       {hasChampStats && (
         <div>
           <h2 className="section-title">Champion Stats</h2>
-          <ChampionStats stats={champion_stats} ddVersion={dd_version} />
+          <ChampionStats stats={champion_stats} ddVersion={dd_version} meta={meta} />
         </div>
       )}
 

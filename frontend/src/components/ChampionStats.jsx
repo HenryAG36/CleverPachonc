@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts'
+import MetaTierBadge from './MetaTierBadge'
 
-export default function ChampionStats({ stats, ddVersion }) {
+export default function ChampionStats({ stats, ddVersion, meta }) {
   const [sortKey, setSortKey] = useState('games')
 
   const rows = Object.entries(stats)
@@ -72,6 +73,7 @@ export default function ChampionStats({ stats, ddVersion }) {
           <tbody>
             {rows.map((r) => {
               const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/champion/${r.name}.png`
+              const champMeta = meta?.per_champ_meta?.[r.name]
               return (
                 <tr key={r.name} className="border-b border-apple-separator hover:bg-white/5 transition-colors">
                   <td className="py-2 pr-3">
@@ -79,6 +81,9 @@ export default function ChampionStats({ stats, ddVersion }) {
                       <img src={iconUrl} alt={r.name} className="w-7 h-7 rounded"
                         onError={e => { e.target.style.display = 'none' }} />
                       <span className="font-medium">{r.name}</span>
+                      {champMeta && (
+                        <MetaTierBadge tier={champMeta.tier} wr={champMeta.meta_wr} size="xs" />
+                      )}
                     </div>
                   </td>
                   <td className="px-2 text-right">{r.games}</td>

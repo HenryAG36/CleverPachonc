@@ -48,3 +48,32 @@ def get_item_data() -> Optional[Dict[str, Any]]:
         return r.json()
     except Exception:
         return None
+
+
+def get_rune_data() -> Optional[Dict[str, Any]]:
+    """Return runesReforged data keyed by rune ID for fast lookup."""
+    version = get_latest_version()
+    try:
+        r = requests.get(
+            f"https://ddragon.leagueoflegends.com/cdn/{version}/data/en_US/runesReforged.json",
+            timeout=REQUEST_TIMEOUT,
+        )
+        r.raise_for_status()
+        runes: Dict[str, Any] = {}
+        for path in r.json():
+            for slot in path.get("slots", []):
+                for rune in slot.get("runes", []):
+                    runes[str(rune["id"])] = {
+                        "name": rune["name"],
+                        "icon": rune["icon"],
+                        "path": path["name"],
+                    }
+            # Include keystone entries at path level too
+            runes[str(path["id"])] = {
+                "name": path["name"],
+                "icon": path["icon"],
+                "path": path["name"],
+            }
+        return runes
+    except Exception:
+        return None
