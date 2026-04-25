@@ -214,8 +214,8 @@ def main():
     print(f"\nFetched {len(cache)} entries ({errors} failed)")
 
     if not cache:
-        print("ERROR: No data fetched — aborting write")
-        sys.exit(1)
+        print("WARNING: No data fetched — keeping existing meta_cache.json unchanged")
+        sys.exit(0)
 
     out_path = os.path.abspath(OUT_FILE)
     with open(out_path, "w") as f:
