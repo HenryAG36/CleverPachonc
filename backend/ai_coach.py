@@ -91,11 +91,34 @@ def generate_coaching(payload: dict) -> dict:
             {"role": "user", "content": user_prompt},
         ],
         temperature=0.4,
-        max_tokens=400,
+        max_tokens=700,
     )
 
     content = response.choices[0].message.content.strip()
     content = re.sub(r"^```(?:json)?\s*", "", content)
     content = re.sub(r"\s*```$", "", content)
 
-    return json.loads(content)
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        # Truncated or malformed LLM response — return structured fallback from pre-computed findings
+        p = findings["player"]
+        w = findings.get("weaknesses", [])
+        return {
+            "assessment": f"{p['name']} is {p['tier']} {p['rank']} with {findings['recent']['wr']}% WR over {findings['recent']['games']} recent games.",
+            "weaknesses": [
+                {"title": x["type"].replace("_", " ").title(), "detail": f"{x['champion']}: {x['value']} vs {x['benchmark']} benchmark", "action": "Focus on improving this metric."}
+                for x in w
+            ],
+            "champion_pool": {
+                "keep": [c["name"] for c in findings["champion_pool"]["keep"]],
+                "drop": [c["name"] for c in findings["champion_pool"]["drop"]],
+                "reasoning": "Based on win rate and game count.",
+            },
+            "role_recommendation": {
+                "recommended": (findings.get("best_role") or {}).get("role", ""),
+                "reasoning": "Highest performance score across recent games.",
+            },
+            "strength": (findings.get("strength") or {}).get("type", ""),
+            "weekly_focus": findings.get("weekly_focus", "maintain_consistency"),
+        }
