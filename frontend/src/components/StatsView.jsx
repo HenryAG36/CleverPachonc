@@ -4,6 +4,7 @@ import RankedCard from './RankedCard'
 import MasteryCard from './MasteryCard'
 import MatchHistory from './MatchHistory'
 import ChampionStats from './ChampionStats'
+import AICoach from './AICoach'
 
 export default function StatsView({ data }) {
   const { dd_version, summoner, ranked, mastery, matches, champion_stats } = data
@@ -49,6 +50,10 @@ export default function StatsView({ data }) {
           <h2 className="section-title">Champion Stats</h2>
           <ChampionStats stats={champion_stats} ddVersion={dd_version} />
         </div>
+      )}
+
+      {hasMatches && (
+        <AICoach data={data} />
       )}
     </div>
   )

@@ -11,6 +11,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
@@ -19,6 +22,7 @@ from backend.riot_api import get_summoner_data_async
 from backend.data_dragon import get_champion_map, get_item_data, get_latest_version
 from backend.analysis.match_analysis import analyze_match_history
 from backend.analysis.champion_stats import analyze_champion_stats
+from backend.ai_coach import generate_coaching
 from backend.utils.exceptions import (
     APIError, AuthError, ConfigError, NetworkError, NotFoundError, RateLimitError,
 )
@@ -158,6 +162,20 @@ def summoner():
         "champion_stats": champ_stats,
         "match_analysis": serialised_analysis,
     })
+
+
+@app.route("/api/coach", methods=["POST"])
+def coach():
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"error": "JSON body required"}), 400
+    try:
+        result = generate_coaching(payload)
+        return jsonify(result)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": f"Coach error: {e}"}), 500
 
 
 @app.route("/api/health")
