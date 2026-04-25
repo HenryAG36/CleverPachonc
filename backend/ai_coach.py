@@ -8,6 +8,100 @@ from backend.analysis.coach_analysis import analyze_for_coaching
 
 logger = logging.getLogger(__name__)
 
+_METRIC_TITLES = {
+    "cs_low": "Low CS / Poor Farming",
+    "dmg_low": "Below-Average Damage Output",
+    "kda_low": "Too Many Deaths",
+    "vision_low": "Weak Vision Control",
+    "role_wr_low": "Underperforming in Role",
+    "sample_size": "Limited Game Sample",
+    "cs_good_dmg_low": "Farm Good — Damage Not Converting",
+    "wr_low_kda_ok": "Win Rate Below Your KDA",
+}
+
+_METRIC_ACTIONS = {
+    "cs_low": "Practice last-hitting under tower in a custom game — target 7+ CS/min before pulling ahead.",
+    "dmg_low": "Identify the highest-value target before each fight and commit to dealing damage to them.",
+    "kda_low": "Play one step further back than feels natural — one fewer death per game saves ~30 LP over 100 games.",
+    "vision_low": "Buy a control ward every back and use your trinket before every objective setup.",
+    "role_wr_low": "Watch replays of your 3 worst losses in this role and identify the exact moment you fell behind.",
+    "sample_size": "Play 20+ games before drawing firm conclusions — variance is high on small samples.",
+    "cs_good_dmg_low": "Your farm is solid but you're not converting it into fighting impact — prioritize skirmishes when ahead.",
+    "wr_low_kda_ok": "Your individual play is strong but you're not closing out games — practice pressing leads after kills.",
+}
+
+_STRENGTH_PHRASES = {
+    "cs_high": "Your farming mechanics are significantly above the benchmark",
+    "vision_high": "You're placing more wards than most players at your tier",
+    "dmg_high": "You consistently deal above-average damage for your role",
+    "kda_high": "You're dying much less than the typical player at this rank",
+}
+
+
+def _fallback_weakness(x: dict) -> dict:
+    t = x.get("type", "")
+    champion = x.get("champion", "overall")
+    value = x.get("value")
+    bench = x.get("benchmark")
+
+    title = _METRIC_TITLES.get(t, t.replace("_", " ").title())
+
+    if t == "role_wr_low":
+        detail = (
+            f"Your {champion} role win rate is {value}% vs your overall {bench}% — "
+            f"a gap that's actively costing you LP. Identifying why you struggle specifically in this role is the fastest path to climbing."
+        )
+    elif t == "sample_size":
+        detail = (
+            f"Only {value} ranked games analyzed so far. "
+            f"Stats are unreliable at this sample size — keep playing and the picture will sharpen."
+        )
+    elif value is not None and bench is not None:
+        detail = (
+            f"{champion}: {value} vs the {bench} benchmark for your tier. "
+            f"This gap compounds over time — small improvements here have outsized impact on win rate."
+        )
+    else:
+        detail = f"Performance on {champion} is below the expected benchmark for your rank."
+
+    action = _METRIC_ACTIONS.get(t, "Dedicate your next 10 games to consciously tracking this metric.")
+    return {"title": title, "detail": detail, "action": action}
+
+
+def _humanize_strength(s: dict | None) -> str:
+    if not s:
+        return ""
+    t = s.get("type", "")
+    champ = s.get("champion", "")
+    val = s.get("value")
+    bench = s.get("benchmark")
+    delta = s.get("delta_pct", 0)
+
+    description = _STRENGTH_PHRASES.get(t, "Your performance here is above average")
+    if val is not None and bench is not None:
+        return (
+            f"{description} on {champ} ({val} vs {bench} benchmark, {delta:+.1f}%). "
+            f"This is a real competitive edge — lean into it when choosing matchups."
+        )
+    return f"{description} on {champ}. This is a genuine strength you can build your playstyle around."
+
+
+def _humanize_weekly_focus(weekly_focus: str) -> str:
+    if not weekly_focus or weekly_focus == "maintain_consistency":
+        return (
+            "Your fundamentals look solid this week. "
+            "Focus on playing your strongest champions in favorable matchups and avoid unnecessary variance."
+        )
+    parts = weekly_focus.split(":", 1)
+    metric = parts[0]
+    champion = parts[1] if len(parts) > 1 else ""
+    action = _METRIC_ACTIONS.get(
+        metric, f"Improve {metric.replace('_', ' ')} over your next 10 games."
+    )
+    if champion and champion not in ("overall", ""):
+        return f"{champion} is your biggest lever this week: {action}"
+    return action
+
 # Meta analysis is optional — app works without it
 try:
     from backend.analysis.meta_analysis import analyze_meta_gaps
@@ -121,21 +215,27 @@ def generate_coaching(payload: dict) -> dict:
     client = OpenAI(base_url="https://ollama.com/v1", api_key=api_key)
 
     system_prompt = (
-        "You are a League of Legends coach. Analyze the pre-computed findings below and write "
-        "clear, specific coaching advice in plain English. "
-        "Translate all metric codes: cs_low=farm/CS, dmg_low=damage output, kda_low=deaths/survival, "
-        "vision_low=vision control, role_wr_low=role performance. "
-        "Always include specific numbers and actionable targets. "
-        "Reference champion names and current patch meta where provided. "
-        "Respond with valid JSON only, no markdown."
+        "You are an expert League of Legends climbing coach. Analyze the pre-computed data and write "
+        "specific, actionable advice in plain English with real numbers. "
+        "Metric codes to translate: cs_low=farming/CS per minute, dmg_low=damage per minute, "
+        "kda_low=deaths/KDA ratio, vision_low=vision score per game, role_wr_low=win rate in a specific role. "
+        "Rules: (1) weakness detail must be 2 sentences — what is happening and why it costs LP. "
+        "(2) weakness action must be a concrete drill with a measurable target, not generic advice. "
+        "(3) strength must name the champion and specific stat with the exact number vs benchmark. "
+        "(4) weekly_focus must be one actionable drill the player can do this week, with a measurable target. "
+        "(5) Never return raw metric codes like 'kda_high' or 'cs_low' as field values — always write full sentences. "
+        "Respond with valid JSON only, no markdown fences."
     )
 
     user_prompt = (
         f"{findings_text}\n\n"
-        'Return JSON: {"assessment":"2-3 sentences","weaknesses":[{"title":"","detail":"","action":""}x3],'
-        '"champion_pool":{"keep":[],"drop":[],"reasoning":""},'
-        '"role_recommendation":{"recommended":"","reasoning":""},'
-        '"strength":"","weekly_focus":""}'
+        "Return JSON exactly:\n"
+        '{"assessment":"2-3 sentences: rank, recent WR, and the single most important takeaway",'
+        '"weaknesses":[{"title":"short readable label","detail":"2 sentences: what is happening and why it costs LP","action":"specific drill with a measurable target"}],'
+        '"champion_pool":{"keep":["ChampName"],"drop":["ChampName"],"reasoning":"1-2 sentences on pool health and what to focus on"},'
+        '"role_recommendation":{"recommended":"ROLE","reasoning":"1 sentence with specific numbers"},'
+        '"strength":"1 sentence naming the champion, the stat with exact numbers vs benchmark, and what edge it gives",'
+        '"weekly_focus":"1 concrete drill to do this week with a measurable target — no generic advice"}'
     )
 
     response = client.chat.completions.create(
@@ -145,7 +245,7 @@ def generate_coaching(payload: dict) -> dict:
             {"role": "user", "content": user_prompt},
         ],
         temperature=0.2,
-        max_tokens=700,
+        max_tokens=950,
     )
 
     content = response.choices[0].message.content.strip()
@@ -155,33 +255,28 @@ def generate_coaching(payload: dict) -> dict:
     try:
         result = json.loads(content)
     except json.JSONDecodeError:
-        # Truncated or malformed LLM response — structured fallback from pre-computed findings
+        # Truncated or malformed LLM response — humanized fallback from pre-computed findings
         p = findings["player"]
         w = findings.get("weaknesses", [])
+        rank_str = f"{p['tier']} {p['rank']}".strip() or "Unranked"
         result = {
             "assessment": (
-                f"{p['name']} is {p['tier']} {p['rank']} with {findings['recent']['wr']}% WR "
-                f"over {findings['recent']['games']} recent games."
+                f"{p['name']} is {rank_str} with {findings['recent']['wr']}% WR "
+                f"over {findings['recent']['games']} recent games. "
+                f"The analysis below highlights the highest-impact areas for climbing."
             ),
-            "weaknesses": [
-                {
-                    "title": x["type"].replace("_", " ").title(),
-                    "detail": f"{x['champion']}: {x['value']} vs {x['benchmark']} benchmark",
-                    "action": "Focus on improving this metric.",
-                }
-                for x in w
-            ],
+            "weaknesses": [_fallback_weakness(x) for x in w],
             "champion_pool": {
                 "keep": [c["name"] for c in findings["champion_pool"]["keep"]],
                 "drop": [c["name"] for c in findings["champion_pool"]["drop"]],
-                "reasoning": "Based on win rate and game count.",
+                "reasoning": "Based on win rate and game count across recent matches. Drop low-WR champions and double down on what's working.",
             },
             "role_recommendation": {
                 "recommended": (findings.get("best_role") or {}).get("role", ""),
-                "reasoning": "Highest performance score across recent games.",
+                "reasoning": "Highest combined win rate and KDA score across recent games in this role.",
             },
-            "strength": (findings.get("strength") or {}).get("type", ""),
-            "weekly_focus": findings.get("weekly_focus", "maintain_consistency"),
+            "strength": _humanize_strength(findings.get("strength")),
+            "weekly_focus": _humanize_weekly_focus(findings.get("weekly_focus", "maintain_consistency")),
         }
 
     # Always attach meta so the frontend can render tier badges / pre-session card

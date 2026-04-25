@@ -8,6 +8,31 @@ const ROLE_DISPLAY = {
   BOTTOM: 'ADC', UTILITY: 'Support',
 }
 
+// Safety net: translate any raw metric keys the LLM might slip through
+const RAW_KEY_MAP = {
+  kda_high: 'Strong KDA / Clean Survival Mechanics',
+  cs_high: 'Strong CS / Farming Efficiency',
+  dmg_high: 'High Damage Output',
+  vision_high: 'Excellent Vision Control',
+  maintain_consistency: 'Keep your current consistency — fundamentals look solid.',
+}
+function safeText(text) {
+  if (!text) return ''
+  // Detect raw metric key pattern like "kda_high" or "role_wr_low:MIDDLE"
+  const raw = text.match(/^([a-z]+_[a-z]+)(:[\w]+)?$/)
+  if (!raw) return text
+  const mapped = RAW_KEY_MAP[raw[1]]
+  if (mapped) return mapped
+  // Generic humanize: "role_wr_low:MIDDLE" → "Role Win Rate Low — MIDDLE"
+  return text.replace(/_/g, ' ').replace(':', ' — ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+const WEAKNESS_BORDER = [
+  'border-l-2 border-apple-red',
+  'border-l-2 border-amber-500',
+  'border-l-2 border-apple-blue',
+]
+
 export default function AICoach({ data }) {
   const [coaching, setCoaching] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -84,10 +109,13 @@ export default function AICoach({ data }) {
               <p className="section-title">Areas to Improve</p>
               <div className="space-y-3">
                 {coaching.weaknesses.map((w, i) => (
-                  <div key={i} className="bg-apple-card2 rounded-xl p-4">
-                    <p className="font-semibold text-sm mb-1">{w.title}</p>
+                  <div key={i} className={`bg-apple-card2 rounded-xl p-4 ${WEAKNESS_BORDER[i] ?? WEAKNESS_BORDER[2]}`}>
+                    <p className="font-semibold text-sm mb-1.5">{w.title}</p>
                     <p className="text-apple-text-secondary text-xs leading-relaxed">{w.detail}</p>
-                    <p className="text-apple-blue text-xs mt-2 font-medium">→ {w.action}</p>
+                    <div className="mt-2.5 flex items-start gap-1.5">
+                      <span className="text-apple-blue mt-0.5">→</span>
+                      <p className="text-apple-blue text-xs font-medium leading-relaxed">{w.action}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -154,12 +182,16 @@ export default function AICoach({ data }) {
 
           {/* Strength */}
           {coaching.strength && (
-            <div className="card">
-              <p className="section-title">What You're Doing Well</p>
-              <div className="flex items-start gap-3">
-                <span className="text-apple-green text-base font-bold mt-0.5">↑</span>
-                <p className="text-sm leading-relaxed">{coaching.strength}</p>
+            <div className="card border border-apple-green/20">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-apple-green/15 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3.5 h-3.5 text-apple-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                </div>
+                <p className="text-xs font-semibold text-apple-text-secondary uppercase tracking-widest">What You're Doing Well</p>
               </div>
+              <p className="text-sm leading-relaxed text-apple-text-primary">{safeText(coaching.strength)}</p>
             </div>
           )}
 
@@ -212,9 +244,16 @@ export default function AICoach({ data }) {
             )}
 
             {coaching.weekly_focus && (
-              <div className="card" style={{ borderColor: 'rgba(0,122,255,0.25)', borderWidth: 1, borderStyle: 'solid' }}>
-                <p className="section-title">This Week's Focus</p>
-                <p className="text-sm leading-relaxed">{coaching.weekly_focus}</p>
+              <div className="card" style={{ borderColor: 'rgba(0,122,255,0.3)', borderWidth: 1, borderStyle: 'solid' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-full bg-apple-blue/15 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3.5 h-3.5 text-apple-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-xs font-semibold text-apple-text-secondary uppercase tracking-widest">This Week's Focus</p>
+                </div>
+                <p className="text-sm leading-relaxed">{safeText(coaching.weekly_focus)}</p>
               </div>
             )}
           </div>

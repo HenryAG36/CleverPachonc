@@ -37,6 +37,7 @@ export default function App() {
     <div className="min-h-screen bg-apple-bg font-apple flex flex-col">
       <div className="max-w-5xl mx-auto px-4 py-10 flex-1 w-full">
         <div className="text-center mb-10">
+          <img src="/logo.png" alt="CleverPachonc logo" className="w-16 h-16 mx-auto mb-3" />
           <h1 className="text-3xl font-bold text-white tracking-tight">CleverPachonc</h1>
           <p className="text-apple-text-secondary mt-1 text-sm">League of Legends stats tracker</p>
         </div>
