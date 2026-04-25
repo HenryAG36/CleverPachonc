@@ -3,64 +3,55 @@ import json
 import re
 
 from openai import OpenAI
+from backend.analysis.coach_analysis import analyze_for_coaching
 
 
-def _build_prompt(summoner, ranked, champion_stats, match_analysis):
-    name = summoner.get("gameName", "")
-    tag = summoner.get("tagLine", "")
-    lines = [f"Summoner: {name}#{tag}"]
+def _build_findings_text(findings: dict) -> str:
+    p = findings["player"]
+    r = findings["recent"]
+    pool = findings["champion_pool"]
+    br = findings.get("best_role")
 
-    solo = next((q for q in ranked if q.get("queueType") == "RANKED_SOLO_5x5"), None)
-    if solo:
-        tier = solo.get("tier", "Unranked")
-        rank_div = solo.get("rank", "")
-        lp = solo.get("leaguePoints", 0)
-        wins = solo.get("wins", 0)
-        losses = solo.get("losses", 0)
-        total = wins + losses
-        wr = (wins / total * 100) if total > 0 else 0
-        streak = solo.get("streak", 0)
-        role = solo.get("mostPlayedRole", "Unknown")
+    keep_str = ",".join(
+        f"{c['name']}({c['games']}g,{c['wr']}%WR,{c['kda']}KDA)"
+        for c in pool["keep"]
+    ) or "none"
 
-        lines.append(f"Rank: {tier} {rank_div} — {lp} LP")
-        lines.append(f"Season: {wins}W {losses}L ({wr:.1f}% WR)")
-        if streak:
-            lines.append(f"Streak: {abs(streak)}{'W' if streak > 0 else 'L'}")
-        lines.append(f"Main role: {role}")
+    drop_str = ",".join(
+        f"{c['name']}({c['games']}g,{c['wr']}%WR,{c['reason']})"
+        for c in pool["drop"]
+    ) or "none"
 
-    if match_analysis:
-        total_g = match_analysis.get("total_games", 0)
-        w = match_analysis.get("wins", 0)
-        wr_r = match_analysis.get("winrate", 0)
-        dur = match_analysis.get("avg_game_duration", 0)
+    lines = [
+        f"player={p['name']}|rank={p['tier']} {p['rank']} {p['lp']}LP"
+        f"|season={p['season_wr']}%WR|streak={p['streak']:+d}",
+        f"recent={r['games']}g {r['wr']}%WR",
+    ]
+
+    if br:
         lines.append(
-            f"\nRecent {total_g} games: {w}W {total_g - w}L "
-            f"({wr_r:.1f}% WR), avg {dur / 60:.0f} min/game"
+            f"best_role={br['role']}({br['wr']}%WR,{br['kda']}KDA,{br['delta_pp']:+.1f}pp)"
         )
 
-        for role, stats in match_analysis.get("performance_by_role", {}).items():
-            if role:
-                lines.append(
-                    f"  {role}: {stats['games']}g  "
-                    f"{stats.get('winrate', 0):.0f}% WR  "
-                    f"{stats.get('avg_kda', 0):.2f} KDA"
-                )
+    lines += [f"keep={keep_str}", f"drop={drop_str}"]
 
-    if champion_stats:
-        lines.append("\nChampion pool:")
-        sorted_champs = sorted(
-            champion_stats.items(), key=lambda x: x[1].get("games", 0), reverse=True
+    s = findings.get("strength")
+    if s:
+        lines.append(
+            f"strength={s['type']}:{s['champion']} {s['value']} vs {s['benchmark']} bench (+{s['delta_pct']}%)"
         )
-        for champ_name, s in sorted_champs[:8]:
-            lines.append(
-                f"  {champ_name} ({s.get('main_role', '')}): "
-                f"{s.get('games')}g  {s.get('winrate', 0):.0f}% WR  "
-                f"{s.get('kda', 0):.2f} KDA  "
-                f"{s.get('cs_per_min', 0):.1f} CS/min  "
-                f"{s.get('damage_per_min', 0):.0f} dmg/min  "
-                f"{s.get('vision_per_game', 0):.1f} vision/g"
-            )
+    else:
+        lines.append("strength=none")
 
+    for i, w in enumerate(findings.get("weaknesses", []), 1):
+        lines.append(
+            f"weak{i}={w['type']}:{w['champion']} {w['value']} vs {w['benchmark']} bench [{w['severity'].upper()}]"
+        )
+
+    for cf in findings.get("cross_flags", []):
+        lines.append(f"cross={cf['type']}:{cf['champion']}({cf['note']})")
+
+    lines.append(f"focus={findings.get('weekly_focus', 'maintain_consistency')}")
     return "\n".join(lines)
 
 
@@ -74,40 +65,24 @@ def generate_coaching(payload: dict) -> dict:
     champion_stats = payload.get("champion_stats", {})
     match_analysis = payload.get("match_analysis", {})
 
-    player_data = _build_prompt(summoner, ranked, champion_stats, match_analysis)
+    findings = analyze_for_coaching(summoner, ranked, champion_stats, match_analysis)
+    findings_text = _build_findings_text(findings)
 
     client = OpenAI(base_url="https://ollama.com/v1", api_key=api_key)
 
     system_prompt = (
-        "You are an expert League of Legends coach. "
-        "Analyze player performance data and respond ONLY with valid JSON — "
-        "no markdown, no code fences, no extra text before or after the JSON object."
+        "You are a League of Legends coach. "
+        "Write coaching advice using the pre-analyzed findings below. "
+        "Respond with valid JSON only."
     )
 
-    user_prompt = f"""{player_data}
-
-Return a coaching analysis as a JSON object with this exact structure:
-{{
-  "assessment": "2-3 sentence overview of the player's current performance trajectory",
-  "weaknesses": [
-    {{"title": "short title", "detail": "specific detail citing actual numbers", "action": "one concrete action to take"}},
-    {{"title": "...", "detail": "...", "action": "..."}},
-    {{"title": "...", "detail": "...", "action": "..."}}
-  ],
-  "champion_pool": {{
-    "keep": ["Champion1", "Champion2"],
-    "drop": ["Champion3"],
-    "reasoning": "brief explanation citing winrates"
-  }},
-  "role_recommendation": {{
-    "recommended": "ROLE",
-    "reasoning": "explanation with numbers from the data"
-  }},
-  "strength": "one specific thing this player does well, citing data",
-  "weekly_focus": "single most impactful thing to work on this week"
-}}
-
-Rules: cite actual numbers, give exactly 3 weaknesses, be direct not generic, only include champions that appear in the data."""
+    user_prompt = (
+        f"{findings_text}\n\n"
+        'Return JSON: {"assessment":"2-3 sentences","weaknesses":[{"title":"","detail":"","action":""}x3],'
+        '"champion_pool":{"keep":[],"drop":[],"reasoning":""},'
+        '"role_recommendation":{"recommended":"","reasoning":""},'
+        '"strength":"","weekly_focus":""}'
+    )
 
     response = client.chat.completions.create(
         model="gemini-3-flash-preview:cloud",
@@ -115,11 +90,11 @@ Rules: cite actual numbers, give exactly 3 weaknesses, be direct not generic, on
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        temperature=0.7,
+        temperature=0.4,
+        max_tokens=400,
     )
 
     content = response.choices[0].message.content.strip()
-    # Strip markdown code fences if the model wraps the JSON anyway
     content = re.sub(r"^```(?:json)?\s*", "", content)
     content = re.sub(r"\s*```$", "", content)
 
