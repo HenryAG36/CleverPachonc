@@ -15,7 +15,7 @@ from backend.data_dragon import get_latest_version
 
 logger = logging.getLogger(__name__)
 
-CACHE_DIR = os.path.join(os.path.dirname(__file__), "..", "cache")
+CACHE_DIR = os.path.join(os.environ.get("TMPDIR", "/tmp"), "cleverpachonc_cache")
 CACHE_TTL = 86400  # 24 hours
 
 ROLE_TO_LANE: dict[str, str] = {
@@ -175,7 +175,10 @@ def get_champion_meta(champion_name: str, role: str, tier: str) -> dict | None:
     Return meta stats for champion+role+tier. Cached 24h.
     Returns None if data is unavailable (caller must handle).
     """
-    os.makedirs(CACHE_DIR, exist_ok=True)
+    try:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+    except OSError:
+        pass
     safe_name = champion_name.replace(" ", "").replace("'", "").replace(".", "")
     lane = ROLE_TO_LANE.get(role.upper(), "adc")
     tier_slug = TIER_TO_SLUG.get(tier.upper(), "gold_plus")
@@ -206,13 +209,17 @@ def get_champion_meta(champion_name: str, role: str, tier: str) -> dict | None:
             f"?ep=champion&p=d&v=1&patch={patch}"
             f"&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all"
         )
+        print(f"[meta] fetching {champion_name} cid={champ_id} lane={lane} tier={tier_slug}")
         r = requests.get(
             url, timeout=8,
             headers={"User-Agent": "Mozilla/5.0 (compatible; CleverPachonc/1.0)"},
         )
         r.raise_for_status()
-        result = _parse_lolalytics(r.json())
+        raw = r.json()
+        result = _parse_lolalytics(raw)
+        print(f"[meta] {champion_name} => {'ok wr=' + str(result['win_rate']) if result else 'parse_failed top_keys=' + str(list(raw.keys())[:8])}")
     except Exception as exc:
+        print(f"[meta] fetch error {champion_name} ({role}/{tier}): {exc}")
         logger.info("Meta fetch failed for %s (%s/%s): %s", champion_name, role, tier, exc)
 
     if result is not None:
