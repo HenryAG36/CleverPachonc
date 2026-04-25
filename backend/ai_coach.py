@@ -85,12 +85,12 @@ def generate_coaching(payload: dict) -> dict:
     )
 
     response = client.chat.completions.create(
-        model="gemini-3-flash-preview:cloud",
+        model="ministral-3:3b-cloud",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        temperature=0.4,
+        temperature=0.2,
         max_tokens=700,
     )
 
