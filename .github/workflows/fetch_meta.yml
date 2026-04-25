@@ -1,0 +1,38 @@
+name: Fetch Meta Cache
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC (after Lolalytics updates overnight)
+    - cron: "0 6 * * *"
+  workflow_dispatch:  # allow manual trigger from GitHub UI
+
+permissions:
+  contents: write  # needed to commit meta_cache.json back to repo
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch meta data from Lolalytics
+        run: python scripts/fetch_meta_cache.py
+
+      - name: Commit updated cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/meta_cache.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update meta cache [skip ci]"
+            git push
+          fi
