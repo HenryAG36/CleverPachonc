@@ -1,9 +1,6 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build && cp -r dist ../api/static",
-  "functions": {
-    "api/index.py": { "maxDuration": 60 }
-  },
-  "rewrites": [
+"rewrites": [
     { "source": "/(.*)", "destination": "/api/index.py" }
   ]
 }
