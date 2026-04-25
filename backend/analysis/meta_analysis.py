@@ -99,7 +99,8 @@ def analyze_meta_gaps(
                 {"enemy": k, "meta_wr": v["wr"]} for k, v in worst_matchups
             ],
         }
-        meta_wrs.append((champ_name, meta["win_rate"], meta["tier"], role))
+        if meta["win_rate"] is not None:
+            meta_wrs.append((champ_name, meta["win_rate"], meta["tier"], role))
 
     # Matchup insights: recurring losses cross-referenced with meta data
     losses_vs = _losses_per_enemy(matches)

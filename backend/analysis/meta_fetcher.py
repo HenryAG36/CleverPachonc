@@ -1,8 +1,10 @@
 """
-Fetch and cache champion meta statistics from Lolalytics.
-All results are cached to backend/cache/ for 24 hours so the same
-champion is never fetched more than once per patch cycle.
-Returns None on any failure — all callers must handle None gracefully.
+Fetch champion meta statistics from Meraki Analytics (public CDN, cloud-IP friendly).
+Lolalytics/U.GG block Vercel IPs via Cloudflare; Meraki does not.
+
+Meraki provides play rates only — no win rates. Win-rate-based features (tier badges,
+meta_picks sorting) are disabled until a WR source is available. Tilt detection and
+matchup loss tracking work without this module.
 """
 import json
 import logging
@@ -18,27 +20,17 @@ logger = logging.getLogger(__name__)
 CACHE_DIR = os.path.join(os.environ.get("TMPDIR", "/tmp"), "cleverpachonc_cache")
 CACHE_TTL = 86400  # 24 hours
 
-ROLE_TO_LANE: dict[str, str] = {
-    "TOP": "top",
-    "JUNGLE": "jungle",
-    "MIDDLE": "mid",
-    "BOTTOM": "adc",
-    "UTILITY": "support",
-    "DEFAULT": "adc",
-}
+MERAKI_URL = "https://cdn.merakianalytics.com/riot/lol/resources/latest/en-US/championrates.json"
+MERAKI_CACHE = os.path.join(CACHE_DIR, "meraki_rates.json")
 
-TIER_TO_SLUG: dict[str, str] = {
-    "IRON": "iron_plus",
-    "BRONZE": "bronze_plus",
-    "SILVER": "silver_plus",
-    "GOLD": "gold_plus",
-    "PLATINUM": "platinum_plus",
-    "EMERALD": "emerald_plus",
-    "DIAMOND": "diamond_plus",
-    "MASTER": "diamond_plus",
-    "GRANDMASTER": "diamond_plus",
-    "CHALLENGER": "diamond_plus",
-    "DEFAULT": "gold_plus",
+# Map our role names to Meraki's role keys (they match Riot's teamPosition names)
+ROLE_TO_MERAKI: dict[str, str] = {
+    "TOP": "TOP",
+    "JUNGLE": "JUNGLE",
+    "MIDDLE": "MIDDLE",
+    "BOTTOM": "BOTTOM",
+    "UTILITY": "UTILITY",
+    "DEFAULT": "BOTTOM",
 }
 
 _champ_id_map: dict[str, str] = {}
@@ -62,171 +54,73 @@ def _get_champion_ids() -> dict[str, str]:
     return _champ_id_map
 
 
-def _parse_patch(version: str) -> str:
-    """Convert '15.8.1' → '15.8'."""
-    parts = version.split(".")
-    return f"{parts[0]}.{parts[1]}" if len(parts) >= 2 else version
-
-
-def _tier_label(wr: float) -> str:
-    if wr >= 54:
-        return "OP"
-    if wr >= 52:
-        return "S"
-    if wr >= 50:
-        return "A"
-    if wr >= 48:
-        return "B"
-    return "C"
-
-
-def _safe_get(obj: dict, *keys):
-    for key in keys:
-        if not isinstance(obj, dict):
-            return None
-        obj = obj.get(key)
-    return obj
-
-
-def _parse_lolalytics(data: dict) -> dict | None:
-    """Normalise a raw Lolalytics response into our standard meta dict."""
+def _get_meraki_data() -> dict | None:
+    """Fetch and cache the full Meraki champion rates JSON (one call covers all champs)."""
     try:
-        # Win rate — Lolalytics nests it under head.wr (× or %) or stats.wr
-        wr = _safe_get(data, "head", "wr")
-        if wr is None:
-            wr = _safe_get(data, "stats", "wr")
-        if wr is None:
-            wr = data.get("wr")
-        if not isinstance(wr, (int, float)):
-            return None
-        # Lolalytics sometimes returns wr as a fraction (0.524), sometimes as percent
-        if wr < 1:
-            wr = wr * 100
-        wr = round(float(wr), 1)
+        os.makedirs(CACHE_DIR, exist_ok=True)
+    except OSError:
+        pass
 
-        # Best items
-        best_items: list[dict] = []
-        for key in ("best_items", "items", "item_sets", "best_item_sets"):
-            raw = data.get(key)
-            if isinstance(raw, list):
-                for entry in raw[:6]:
-                    if not isinstance(entry, dict):
-                        continue
-                    item_id = entry.get("id") or entry.get("item_id")
-                    item_wr = entry.get("wr") or entry.get("win_rate") or wr
-                    if item_id:
-                        try:
-                            best_items.append({"id": int(item_id), "wr": float(item_wr)})
-                        except (TypeError, ValueError):
-                            pass
-                if best_items:
-                    break
+    # Serve from cache if fresh
+    try:
+        if os.path.exists(MERAKI_CACHE):
+            age = time.time() - os.path.getmtime(MERAKI_CACHE)
+            if age < CACHE_TTL:
+                with open(MERAKI_CACHE) as f:
+                    cached = json.load(f)
+                    return cached.get("data", {})
+    except Exception:
+        pass
 
-        # Keystone rune
-        keystone: dict | None = None
-        for key in ("best_runes", "runes", "rune_sets", "best_rune_sets"):
-            raw = data.get(key)
-            if isinstance(raw, list) and raw:
-                first = raw[0]
-                if isinstance(first, dict):
-                    ks_id = first.get("keystone") or first.get("keystone_id") or first.get("id")
-                    ks_wr = first.get("wr") or first.get("win_rate") or wr
-                    if ks_id:
-                        try:
-                            keystone = {"id": int(ks_id), "wr": float(ks_wr)}
-                        except (TypeError, ValueError):
-                            pass
-                break
-
-        # Matchups (champion_name → {wr, games})
-        matchups: dict[str, dict] = {}
-        for key in ("vs", "matchups", "counters", "enemy"):
-            raw = data.get(key)
-            if isinstance(raw, dict):
-                for enemy, stats in raw.items():
-                    if not isinstance(stats, dict):
-                        continue
-                    m_wr = stats.get("wr") or stats.get("win_rate")
-                    m_games = stats.get("n") or stats.get("games") or 0
-                    if m_wr is not None:
-                        try:
-                            m_wr_f = float(m_wr)
-                            if m_wr_f < 1:
-                                m_wr_f *= 100
-                            matchups[enemy] = {"wr": round(m_wr_f, 1), "games": int(m_games)}
-                        except (TypeError, ValueError):
-                            pass
-                break
-
-        return {
-            "win_rate": wr,
-            "tier": _tier_label(wr),
-            "best_items": best_items,
-            "keystone": keystone,
-            "matchups": matchups,
-        }
+    try:
+        r = requests.get(MERAKI_URL, timeout=8)
+        r.raise_for_status()
+        data = r.json()
+        print(f"[meta] Meraki fetched patch={data.get('patch', '?')} champions={len(data.get('data', {}))}")
+        try:
+            with open(MERAKI_CACHE, "w") as f:
+                json.dump(data, f)
+        except OSError:
+            pass
+        return data.get("data", {})
     except Exception as exc:
-        logger.warning("Lolalytics parse error: %s", exc)
+        print(f"[meta] Meraki fetch error: {exc}")
         return None
 
 
 def get_champion_meta(champion_name: str, role: str, tier: str) -> dict | None:
     """
-    Return meta stats for champion+role+tier. Cached 24h.
-    Returns None if data is unavailable (caller must handle).
+    Return meta stats for a champion. Only play rate is available (Meraki source).
+    win_rate and tier will be None — callers must handle gracefully.
+    Returns None if champion not found.
     """
-    try:
-        os.makedirs(CACHE_DIR, exist_ok=True)
-    except OSError:
-        pass
-    safe_name = champion_name.replace(" ", "").replace("'", "").replace(".", "")
-    lane = ROLE_TO_LANE.get(role.upper(), "adc")
-    tier_slug = TIER_TO_SLUG.get(tier.upper(), "gold_plus")
-    cache_file = os.path.join(CACHE_DIR, f"{safe_name}_{lane}_{tier_slug}.json")
+    champ_ids = _get_champion_ids()
+    champ_id = champ_ids.get(champion_name)
+    if not champ_id:
+        return None
 
-    # Serve from cache if fresh
-    if os.path.exists(cache_file):
-        age = time.time() - os.path.getmtime(cache_file)
-        if age < CACHE_TTL:
-            try:
-                with open(cache_file) as f:
-                    return json.load(f)
-            except Exception:
-                pass
+    meraki_data = _get_meraki_data()
+    if not meraki_data:
+        return None
 
-    result: dict | None = None
-    try:
-        champ_ids = _get_champion_ids()
-        champ_id = champ_ids.get(champion_name)
-        if not champ_id:
-            return None
+    # Meraki keys by string champion ID
+    champ_rates = meraki_data.get(str(champ_id))
+    if not champ_rates:
+        return None
 
-        version = get_latest_version()
-        patch = _parse_patch(version)
+    # Determine primary role (highest play rate)
+    primary_role = max(champ_rates, key=lambda r: champ_rates[r].get("playRate", 0))
+    target_key = ROLE_TO_MERAKI.get(role.upper(), "BOTTOM")
+    if target_key not in champ_rates:
+        target_key = primary_role
+    play_rate = round(champ_rates[target_key].get("playRate", 0) * 100, 1)
 
-        url = (
-            "https://lolalytics.com/mega/"
-            f"?ep=champion&p=d&v=1&patch={patch}"
-            f"&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all"
-        )
-        print(f"[meta] fetching {champion_name} cid={champ_id} lane={lane} tier={tier_slug}")
-        r = requests.get(
-            url, timeout=8,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; CleverPachonc/1.0)"},
-        )
-        r.raise_for_status()
-        raw = r.json()
-        result = _parse_lolalytics(raw)
-        print(f"[meta] {champion_name} => {'ok wr=' + str(result['win_rate']) if result else 'parse_failed top_keys=' + str(list(raw.keys())[:8])}")
-    except Exception as exc:
-        print(f"[meta] fetch error {champion_name} ({role}/{tier}): {exc}")
-        logger.info("Meta fetch failed for %s (%s/%s): %s", champion_name, role, tier, exc)
-
-    if result is not None:
-        try:
-            with open(cache_file, "w") as f:
-                json.dump(result, f)
-        except Exception:
-            pass
-
-    return result
+    return {
+        "win_rate": None,   # not available from Meraki
+        "tier": None,       # cannot compute without WR
+        "best_items": [],   # not available from Meraki
+        "keystone": None,
+        "matchups": {},     # not available from Meraki
+        "play_rate": play_rate,
+        "primary_role": primary_role,
+    }
