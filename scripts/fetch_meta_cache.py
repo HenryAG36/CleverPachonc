@@ -91,18 +91,31 @@ def tier_label(wr: float) -> str:
 def fetch_champion(champ: str, champ_id: str, lane: str, tier_slug: str, patch: str) -> dict | None:
     # Try URL variants in order — Lolalytics changes API format between patches.
     # No-patch URL uses the current patch by default.
+    tier_simple = tier_slug.replace("_plus", "")  # gold_plus → gold
     url_variants = [
+        # v1 no-patch (current)
         f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
-        f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&patch={patch}&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
+        # v1 with tier without _plus suffix
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&cid={champ_id}&lane={lane}&tier={tier_simple}&queue=420&region=all",
+        # v2 variants
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=2&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=2&cid={champ_id}&lane={lane}&tier={tier_simple}&queue=420&region=all",
+        # patch=0 (all patches)
         f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&patch=0&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
+        # explicit patch version
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&patch={patch}&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
+        # no tier parameter
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&cid={champ_id}&lane={lane}&queue=420&region=all",
     ]
-    for url in url_variants:
+    for i, url in enumerate(url_variants):
         try:
             r = requests.get(url, headers=HEADERS, timeout=10)
+            if champ == "Jinx":
+                print(f"  [probe] variant {i+1} → HTTP {r.status_code}")
             if r.status_code == 403:
-                print(f"  403 blocked: {champ} {lane} {tier_slug}")
+                print(f"  403 blocked on all variants for {champ}")
                 return None
-            if r.status_code == 404:
+            if r.status_code != 200:
                 continue  # try next variant
             r.raise_for_status()
 
