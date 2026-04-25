@@ -89,67 +89,79 @@ def tier_label(wr: float) -> str:
 
 
 def fetch_champion(champ: str, champ_id: str, lane: str, tier_slug: str, patch: str) -> dict | None:
-    url = (
-        f"https://lolalytics.com/mega/"
-        f"?ep=champion&p=d&v=1&patch={patch}"
-        f"&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all"
-    )
-    try:
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        if r.status_code == 403:
-            print(f"  403 blocked: {champ} {lane} {tier_slug}")
-            return None
-        r.raise_for_status()
-        data = r.json()
+    # Try URL variants in order — Lolalytics changes API format between patches.
+    # No-patch URL uses the current patch by default.
+    url_variants = [
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&patch={patch}&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
+        f"https://lolalytics.com/mega/?ep=champion&p=d&v=1&patch=0&cid={champ_id}&lane={lane}&tier={tier_slug}&queue=420&region=all",
+    ]
+    for url in url_variants:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=10)
+            if r.status_code == 403:
+                print(f"  403 blocked: {champ} {lane} {tier_slug}")
+                return None
+            if r.status_code == 404:
+                continue  # try next variant
+            r.raise_for_status()
 
-        wr = data.get("head", {}).get("wr") or data.get("wr")
-        if wr is None:
-            print(f"  No WR field for {champ} {lane} — keys: {list(data.keys())[:8]}")
-            return None
-        if wr < 1:
-            wr *= 100
-        wr = round(float(wr), 1)
+            data = r.json()
+            # Print keys on first success to help debug format changes
+            if champ == "Jinx":
+                print(f"  [debug] Jinx response keys: {list(data.keys())[:12]}")
 
-        # Items
-        best_items: list[dict] = []
-        for key in ("best_items", "items", "item_sets"):
-            raw = data.get(key)
-            if isinstance(raw, list):
-                for entry in raw[:6]:
-                    if not isinstance(entry, dict):
-                        continue
-                    iid = entry.get("id") or entry.get("item_id")
-                    iwr = entry.get("wr") or entry.get("win_rate") or wr
-                    if iid:
-                        best_items.append({"id": int(iid), "wr": float(iwr)})
-                if best_items:
+            wr = data.get("head", {}).get("wr") or data.get("wr")
+            if wr is None:
+                print(f"  No WR field for {champ} {lane} — keys: {list(data.keys())[:8]}")
+                continue  # try next variant
+
+            if wr < 1:
+                wr *= 100
+            wr = round(float(wr), 1)
+
+            # Items
+            best_items: list[dict] = []
+            for key in ("best_items", "items", "item_sets"):
+                raw = data.get(key)
+                if isinstance(raw, list):
+                    for entry in raw[:6]:
+                        if not isinstance(entry, dict):
+                            continue
+                        iid = entry.get("id") or entry.get("item_id")
+                        iwr = entry.get("wr") or entry.get("win_rate") or wr
+                        if iid:
+                            best_items.append({"id": int(iid), "wr": float(iwr)})
+                    if best_items:
+                        break
+
+            # Matchups
+            matchups: dict[str, dict] = {}
+            for key in ("vs", "matchups", "counters"):
+                raw = data.get(key)
+                if isinstance(raw, dict):
+                    for enemy, stats in raw.items():
+                        if not isinstance(stats, dict):
+                            continue
+                        m_wr = stats.get("wr") or stats.get("win_rate")
+                        if m_wr is not None:
+                            mf = float(m_wr)
+                            if mf < 1:
+                                mf *= 100
+                            matchups[enemy] = {"wr": round(mf, 1), "games": int(stats.get("n") or stats.get("games") or 0)}
                     break
 
-        # Matchups
-        matchups: dict[str, dict] = {}
-        for key in ("vs", "matchups", "counters"):
-            raw = data.get(key)
-            if isinstance(raw, dict):
-                for enemy, stats in raw.items():
-                    if not isinstance(stats, dict):
-                        continue
-                    m_wr = stats.get("wr") or stats.get("win_rate")
-                    if m_wr is not None:
-                        mf = float(m_wr)
-                        if mf < 1:
-                            mf *= 100
-                        matchups[enemy] = {"wr": round(mf, 1), "games": int(stats.get("n") or stats.get("games") or 0)}
-                break
+            return {
+                "win_rate": wr,
+                "tier": tier_label(wr),
+                "best_items": best_items,
+                "matchups": matchups,
+            }
+        except Exception as exc:
+            print(f"  Error {champ} {lane} {tier_slug} ({url.split('?')[0]}...): {exc}")
 
-        return {
-            "win_rate": wr,
-            "tier": tier_label(wr),
-            "best_items": best_items,
-            "matchups": matchups,
-        }
-    except Exception as exc:
-        print(f"  Error {champ} {lane} {tier_slug}: {exc}")
-        return None
+    print(f"  All variants failed for {champ} {lane}")
+    return None
 
 
 def main():
