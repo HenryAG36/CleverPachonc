@@ -2,7 +2,7 @@ name: Fetch Meta Cache
 
 on:
   schedule:
-    # Run daily at 06:00 UTC (after Lolalytics updates overnight)
+    # Run daily at 06:00 UTC
     - cron: "0 6 * * *"
   workflow_dispatch:  # allow manual trigger from GitHub UI
 
@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Fetch meta data from Lolalytics
+      - name: Fetch champion pick rates from Meraki Analytics
         run: python scripts/fetch_meta_cache.py
 
       - name: Commit updated cache

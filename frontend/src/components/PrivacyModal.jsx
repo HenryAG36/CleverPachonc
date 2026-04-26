@@ -52,7 +52,36 @@ export default function PrivacyModal({ onClose }) {
                 Riot Games Terms of Service
               </a>
               . Champion icons and game assets are served directly from the Data Dragon CDN
-              operated by Riot Games.
+              operated by Riot Games. Champion pick rate data is sourced from{' '}
+              <a
+                href="https://meraki.gg"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zar-cyan hover:underline"
+              >
+                Meraki Analytics
+              </a>
+              . AI coaching analysis is powered by the{' '}
+              <a
+                href="https://www.anthropic.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zar-cyan hover:underline"
+              >
+                Anthropic Claude API
+              </a>
+              ; match data submitted for coaching is processed by Anthropic's servers and
+              subject to their{' '}
+              <a
+                href="https://www.anthropic.com/legal/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zar-cyan hover:underline"
+              >
+                Privacy Policy
+              </a>
+              . No personally identifiable information beyond in-game summoner names is
+              transmitted.
             </p>
           </section>
 
@@ -66,8 +95,14 @@ export default function PrivacyModal({ onClose }) {
           <section>
             <h3 className="font-bold text-white mb-1 text-xs uppercase tracking-widest">Contact</h3>
             <p className="leading-relaxed">
-              For questions about this privacy policy, open an issue on the project&apos;s
-              GitHub repository.
+              For questions about this privacy policy, contact us at{' '}
+              <a
+                href="mailto:henry.garban@owner.com"
+                className="text-zar-cyan hover:underline"
+              >
+                henry.garban@owner.com
+              </a>
+              .
             </p>
           </section>
         </div>

@@ -1,92 +1,1769 @@
 {
-  "patch": "16.8-static",
+  "patch": "16.8",
   "data": {
-    "Jinx_adc":        {"win_rate": 52.8, "tier": "S",  "best_items": [], "matchups": {}},
-    "Caitlyn_adc":     {"win_rate": 51.4, "tier": "A",  "best_items": [], "matchups": {}},
-    "Jhin_adc":        {"win_rate": 51.9, "tier": "A",  "best_items": [], "matchups": {}},
-    "Ezreal_adc":      {"win_rate": 49.8, "tier": "B",  "best_items": [], "matchups": {}},
-    "KaiSa_adc":       {"win_rate": 51.2, "tier": "A",  "best_items": [], "matchups": {}},
-    "Ashe_adc":        {"win_rate": 52.3, "tier": "S",  "best_items": [], "matchups": {}},
-    "Varus_adc":       {"win_rate": 52.1, "tier": "S",  "best_items": [], "matchups": {}},
-    "MissFortune_adc": {"win_rate": 52.5, "tier": "S",  "best_items": [], "matchups": {}},
-    "Sivir_adc":       {"win_rate": 52.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Draven_adc":      {"win_rate": 51.7, "tier": "A",  "best_items": [], "matchups": {}},
-    "Tristana_adc":    {"win_rate": 51.3, "tier": "A",  "best_items": [], "matchups": {}},
-    "Lucian_adc":      {"win_rate": 49.6, "tier": "B",  "best_items": [], "matchups": {}},
-    "Xayah_adc":       {"win_rate": 50.8, "tier": "A",  "best_items": [], "matchups": {}},
-    "Twitch_adc":      {"win_rate": 52.4, "tier": "S",  "best_items": [], "matchups": {}},
-    "Samira_adc":      {"win_rate": 50.1, "tier": "B",  "best_items": [], "matchups": {}},
-    "Smolder_adc":     {"win_rate": 51.0, "tier": "A",  "best_items": [], "matchups": {}},
-    "Nilah_adc":       {"win_rate": 51.5, "tier": "A",  "best_items": [], "matchups": {}},
-    "Aphelios_adc":    {"win_rate": 50.4, "tier": "B",  "best_items": [], "matchups": {}},
-    "KogMaw_adc":      {"win_rate": 52.6, "tier": "S",  "best_items": [], "matchups": {}},
-    "Zeri_adc":        {"win_rate": 49.5, "tier": "B",  "best_items": [], "matchups": {}},
-
-    "Ahri_mid":        {"win_rate": 52.1, "tier": "S",  "best_items": [], "matchups": {}},
-    "Lux_mid":         {"win_rate": 53.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Yasuo_mid":       {"win_rate": 48.8, "tier": "B",  "best_items": [], "matchups": {}},
-    "Yone_mid":        {"win_rate": 49.2, "tier": "B",  "best_items": [], "matchups": {}},
-    "Zed_mid":         {"win_rate": 50.0, "tier": "B",  "best_items": [], "matchups": {}},
-    "Katarina_mid":    {"win_rate": 51.3, "tier": "A",  "best_items": [], "matchups": {}},
-    "Vex_mid":         {"win_rate": 53.1, "tier": "S",  "best_items": [], "matchups": {}},
-    "Syndra_mid":      {"win_rate": 51.0, "tier": "A",  "best_items": [], "matchups": {}},
-    "Viktor_mid":      {"win_rate": 52.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Fizz_mid":        {"win_rate": 51.8, "tier": "A",  "best_items": [], "matchups": {}},
-    "Akali_mid":       {"win_rate": 50.2, "tier": "B",  "best_items": [], "matchups": {}},
-    "Orianna_mid":     {"win_rate": 51.5, "tier": "A",  "best_items": [], "matchups": {}},
-    "Hwei_mid":        {"win_rate": 51.6, "tier": "A",  "best_items": [], "matchups": {}},
-    "Qiyana_mid":      {"win_rate": 50.5, "tier": "A",  "best_items": [], "matchups": {}},
-    "Aurora_mid":      {"win_rate": 51.2, "tier": "A",  "best_items": [], "matchups": {}},
-    "Naafiri_mid":     {"win_rate": 51.4, "tier": "A",  "best_items": [], "matchups": {}},
-    "Cassiopeia_mid":  {"win_rate": 52.2, "tier": "S",  "best_items": [], "matchups": {}},
-
-    "Darius_top":      {"win_rate": 52.3, "tier": "S",  "best_items": [], "matchups": {}},
-    "Garen_top":       {"win_rate": 53.2, "tier": "S",  "best_items": [], "matchups": {}},
-    "Malphite_top":    {"win_rate": 52.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Fiora_top":       {"win_rate": 51.4, "tier": "A",  "best_items": [], "matchups": {}},
-    "Mordekaiser_top": {"win_rate": 52.1, "tier": "S",  "best_items": [], "matchups": {}},
-    "Sett_top":        {"win_rate": 51.9, "tier": "A",  "best_items": [], "matchups": {}},
-    "Aatrox_top":      {"win_rate": 51.2, "tier": "A",  "best_items": [], "matchups": {}},
-    "Jax_top":         {"win_rate": 51.0, "tier": "A",  "best_items": [], "matchups": {}},
-    "Gwen_top":        {"win_rate": 51.5, "tier": "A",  "best_items": [], "matchups": {}},
-    "Irelia_top":      {"win_rate": 49.8, "tier": "B",  "best_items": [], "matchups": {}},
-    "Camille_top":     {"win_rate": 51.3, "tier": "A",  "best_items": [], "matchups": {}},
-    "Renekton_top":    {"win_rate": 50.8, "tier": "A",  "best_items": [], "matchups": {}},
-    "Volibear_top":    {"win_rate": 52.4, "tier": "S",  "best_items": [], "matchups": {}},
-    "Ambessa_top":     {"win_rate": 51.7, "tier": "A",  "best_items": [], "matchups": {}},
-    "Teemo_top":       {"win_rate": 52.8, "tier": "S",  "best_items": [], "matchups": {}},
-
-    "Amumu_jungle":    {"win_rate": 53.1, "tier": "S",  "best_items": [], "matchups": {}},
-    "Warwick_jungle":  {"win_rate": 52.9, "tier": "S",  "best_items": [], "matchups": {}},
-    "Hecarim_jungle":  {"win_rate": 52.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Vi_jungle":       {"win_rate": 51.8, "tier": "A",  "best_items": [], "matchups": {}},
-    "Viego_jungle":    {"win_rate": 51.4, "tier": "A",  "best_items": [], "matchups": {}},
-    "Kayn_jungle":     {"win_rate": 51.5, "tier": "A",  "best_items": [], "matchups": {}},
-    "LeeSin_jungle":   {"win_rate": 49.7, "tier": "B",  "best_items": [], "matchups": {}},
-    "Ekko_jungle":     {"win_rate": 51.2, "tier": "A",  "best_items": [], "matchups": {}},
-    "Lillia_jungle":   {"win_rate": 51.0, "tier": "A",  "best_items": [], "matchups": {}},
-    "Kindred_jungle":  {"win_rate": 50.6, "tier": "A",  "best_items": [], "matchups": {}},
-    "Nocturne_jungle": {"win_rate": 52.2, "tier": "S",  "best_items": [], "matchups": {}},
-    "Briar_jungle":    {"win_rate": 52.5, "tier": "S",  "best_items": [], "matchups": {}},
-    "Nunu_jungle":     {"win_rate": 52.3, "tier": "S",  "best_items": [], "matchups": {}},
-
-    "Nautilus_support":   {"win_rate": 52.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Leona_support":      {"win_rate": 51.8, "tier": "A",  "best_items": [], "matchups": {}},
-    "Thresh_support":     {"win_rate": 51.5, "tier": "A",  "best_items": [], "matchups": {}},
-    "Lulu_support":       {"win_rate": 53.2, "tier": "S",  "best_items": [], "matchups": {}},
-    "Soraka_support":     {"win_rate": 54.1, "tier": "OP", "best_items": [], "matchups": {}},
-    "Janna_support":      {"win_rate": 53.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Alistar_support":    {"win_rate": 52.1, "tier": "S",  "best_items": [], "matchups": {}},
-    "Blitzcrank_support": {"win_rate": 51.2, "tier": "A",  "best_items": [], "matchups": {}},
-    "Senna_support":      {"win_rate": 51.0, "tier": "A",  "best_items": [], "matchups": {}},
-    "Milio_support":      {"win_rate": 53.4, "tier": "S",  "best_items": [], "matchups": {}},
-    "Seraphine_support":  {"win_rate": 52.6, "tier": "S",  "best_items": [], "matchups": {}},
-    "Karma_support":      {"win_rate": 52.3, "tier": "S",  "best_items": [], "matchups": {}},
-    "Renata_support":     {"win_rate": 51.4, "tier": "A",  "best_items": [], "matchups": {}},
-    "Zyra_support":       {"win_rate": 52.8, "tier": "S",  "best_items": [], "matchups": {}},
-    "Nami_support":       {"win_rate": 53.5, "tier": "S",  "best_items": [], "matchups": {}},
-    "Morgana_support":    {"win_rate": 52.0, "tier": "S",  "best_items": [], "matchups": {}},
-    "Bard_support":       {"win_rate": 51.6, "tier": "A",  "best_items": [], "matchups": {}},
-    "Pyke_support":       {"win_rate": 50.4, "tier": "B",  "best_items": [], "matchups": {}}
+    "Annie_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Olaf_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Galio_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "TwistedFate_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "XinZhao_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Urgot_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Leblanc_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Vladimir_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Vladimir_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Fiddlesticks_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kayle_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "MasterYi_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Alistar_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ryze_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Sion_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Sivir_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 4.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Soraka_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Teemo_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Tristana_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Warwick_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Nunu_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "MissFortune_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 4.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ashe_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Tryndamere_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Jax_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Jax_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Morgana_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zilean_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Singed_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Evelynn_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Twitch_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Karthus_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Chogath_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Amumu_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Rammus_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Anivia_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Shaco_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "DrMundo_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "DrMundo_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Sona_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kassadin_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Irelia_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Irelia_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Janna_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Gangplank_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Corki_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Karma_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Taric_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Veigar_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Trundle_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Trundle_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Swain_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Caitlyn_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 9.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Blitzcrank_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Malphite_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Malphite_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Katarina_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Nocturne_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Maokai_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Renekton_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "JarvanIV_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Elise_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Orianna_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "MonkeyKing_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Brand_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "LeeSin_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Vayne_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Vayne_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Rumble_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Cassiopeia_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Skarner_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Heimerdinger_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Nasus_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Nidalee_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Udyr_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Poppy_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Gragas_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Pantheon_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ezreal_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Mordekaiser_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Yorick_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Akali_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Akali_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 4.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kennen_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Garen_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Leona_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Malzahar_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Talon_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Riven_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "KogMaw_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Shen_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Lux_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Lux_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Xerath_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Xerath_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Shyvana_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ahri_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Graves_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Fizz_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Volibear_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Volibear_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Rengar_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Varus_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Varus_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Nautilus_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 4.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Viktor_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Sejuani_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Fiora_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ziggs_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Lulu_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 4.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Draven_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Hecarim_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Khazix_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Darius_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Jayce_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Jayce_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Lissandra_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Diana_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Diana_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Quinn_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Syndra_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "AurelionSol_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kayn_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zoe_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zyra_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kaisa_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 7.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Seraphine_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Gnar_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zac_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Yasuo_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Yasuo_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 4.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Velkoz_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Taliyah_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Camille_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Akshan_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Belveth_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Braum_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Jhin_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 6.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kindred_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zeri_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Jinx_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 7.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "TahmKench_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "TahmKench_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Briar_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Viego_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 7.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Senna_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Lucian_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zed_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zed_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kled_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ekko_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ekko_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Qiyana_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Qiyana_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Vi_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Aatrox_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Nami_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 6.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Azir_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Yuumi_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Samira_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Thresh_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 6.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Illaoi_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "RekSai_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ivern_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Kalista_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Bard_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Rakan_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Xayah_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ornn_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Sylas_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Sylas_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Neeko_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Aphelios_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Rell_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Pyke_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Vex_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Yone_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Yone_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.6,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ambessa_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.0,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Ambessa_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Mel_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Mel_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Yunara_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 4.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Sett_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Lillia_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.5,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Gwen_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.1,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Gwen_jungle": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.2,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Renata_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 0.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Aurora_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Nilah_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.3,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "KSante_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Smolder_adc": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 5.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Milio_support": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 3.8,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Zaahen_top": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 2.9,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Hwei_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.4,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    },
+    "Naafiri_mid": {
+      "win_rate": null,
+      "tier": null,
+      "pick_rate": 1.7,
+      "ban_rate": null,
+      "keystone_id": null,
+      "best_items": [],
+      "matchups": {}
+    }
   }
 }

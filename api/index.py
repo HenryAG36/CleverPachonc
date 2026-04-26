@@ -359,7 +359,7 @@ def tierlist():
             continue
         champions.append({
             "name": champ_name,
-            "tier": entry.get("tier") or "C",
+            "tier": entry.get("tier") or None,
             "win_rate": entry.get("win_rate"),
             "pick_rate": entry.get("pick_rate"),
             "ban_rate": entry.get("ban_rate"),
@@ -368,7 +368,10 @@ def tierlist():
         })
 
     tier_order = {"OP": 0, "S": 1, "A": 2, "B": 3, "C": 4}
-    champions.sort(key=lambda x: (tier_order.get(x["tier"], 4), -(x["win_rate"] or 0)))
+    champions.sort(key=lambda x: (
+        tier_order.get(x["tier"], 99) if x["tier"] else 99,
+        -(x["pick_rate"] or 0) if not x["win_rate"] else -(x["win_rate"] or 0),
+    ))
 
     return jsonify({
         "role": lane,
