@@ -5,6 +5,12 @@ import WardMap from './WardMap'
 const QUEUE_NAMES = { 420: 'Ranked Solo', 440: 'Ranked Flex', 450: 'ARAM', 400: 'Normal', 430: 'Normal' }
 const ROLE_LABELS = { TOP: 'Top', JUNGLE: 'JGL', MIDDLE: 'Mid', BOTTOM: 'Bot', UTILITY: 'Sup' }
 
+function renderMd(text) {
+  if (!text) return null
+  const parts = text.split(/\*\*(.*?)\*\*/g)
+  return parts.map((part, i) => i % 2 === 1 ? <strong key={i}>{part}</strong> : part)
+}
+
 const DDR = (version) => `https://ddragon.leagueoflegends.com/cdn/${version}/img`
 
 export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, playerPuuid, playerName, region, onClose }) {
@@ -151,29 +157,29 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
             {coaching && !coachLoading && (
               <div className="space-y-3">
                 <div className="card">
-                  <p className="text-sm leading-relaxed">{coaching.assessment}</p>
+                  <p className="text-sm leading-relaxed">{renderMd(coaching.assessment)}</p>
                 </div>
                 {coaching.key_mistake && (
                   <div className="card border-l-2 border-l-zar-red">
                     <p className="text-xs font-bold uppercase tracking-widest text-zar-text-secondary mb-1.5">Key Mistake</p>
-                    <p className="text-sm font-semibold mb-1">{coaching.key_mistake.what}</p>
-                    <p className="text-xs text-zar-text-secondary mb-2">{coaching.key_mistake.why}</p>
+                    <p className="text-sm font-semibold mb-1">{renderMd(coaching.key_mistake.what)}</p>
+                    <p className="text-xs text-zar-text-secondary mb-2">{renderMd(coaching.key_mistake.why)}</p>
                     <div className="flex gap-1.5 items-start">
                       <span className="text-zar-cyan mt-0.5 shrink-0">→</span>
-                      <p className="text-xs text-zar-cyan font-medium">{coaching.key_mistake.fix}</p>
+                      <p className="text-xs text-zar-cyan font-medium">{renderMd(coaching.key_mistake.fix)}</p>
                     </div>
                   </div>
                 )}
                 {coaching.strength && (
                   <div className="card border-l-2 border-l-zar-green">
                     <p className="text-xs font-bold uppercase tracking-widest text-zar-text-secondary mb-1.5">Strength</p>
-                    <p className="text-sm">{coaching.strength}</p>
+                    <p className="text-sm">{renderMd(coaching.strength)}</p>
                   </div>
                 )}
                 {coaching.improvement && (
                   <div className="card border-l-2 border-l-zar-cyan">
                     <p className="text-xs font-bold uppercase tracking-widest text-zar-text-secondary mb-1.5">This Game's Focus</p>
-                    <p className="text-sm">{coaching.improvement}</p>
+                    <p className="text-sm">{renderMd(coaching.improvement)}</p>
                   </div>
                 )}
                 <button

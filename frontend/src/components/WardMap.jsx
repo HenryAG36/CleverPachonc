@@ -59,29 +59,41 @@ export default function WardMap({ matchId, region, puuid, ddVersion }) {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
 
-    // Draw ideal zones (semi-transparent green rings)
+    // Draw ideal zones as soft green halos
     for (const zone of IDEAL_ZONES) {
       const { cx, cy } = toCanvas(zone.x, zone.y)
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 28)
+      grad.addColorStop(0, 'rgba(46,204,113,0.22)')
+      grad.addColorStop(0.5, 'rgba(46,204,113,0.08)')
+      grad.addColorStop(1, 'rgba(46,204,113,0)')
       ctx.beginPath()
-      ctx.arc(cx, cy, 16, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(46,204,113,0.12)'
+      ctx.arc(cx, cy, 28, 0, Math.PI * 2)
+      ctx.fillStyle = grad
       ctx.fill()
-      ctx.strokeStyle = 'rgba(46,204,113,0.35)'
+      ctx.beginPath()
+      ctx.arc(cx, cy, 14, 0, Math.PI * 2)
+      ctx.strokeStyle = 'rgba(46,204,113,0.4)'
       ctx.lineWidth = 1
       ctx.stroke()
     }
 
-    // Draw ward events
+    // Draw ward heatmap glows — overlapping blobs naturally show density
     for (const w of wards) {
       const { cx, cy } = toCanvas(w.x, w.y)
-      const color = WARD_COLORS[w.type] || WARD_COLORS.UNDEFINED
+      let r, g, b
+      if (w.type === 'CONTROL_WARD') { r = 255; g = 45; b = 107 }
+      else if (w.type === 'BLUE_TRINKET') { r = 0; g = 207; b = 221 }
+      else { r = 255; g = 214; b = 10 }
+
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 40)
+      grad.addColorStop(0,   `rgba(${r},${g},${b},0.75)`)
+      grad.addColorStop(0.3, `rgba(${r},${g},${b},0.38)`)
+      grad.addColorStop(0.6, `rgba(${r},${g},${b},0.12)`)
+      grad.addColorStop(1,   `rgba(${r},${g},${b},0)`)
       ctx.beginPath()
-      ctx.arc(cx, cy, 5, 0, Math.PI * 2)
-      ctx.fillStyle = color + 'cc'
+      ctx.arc(cx, cy, 40, 0, Math.PI * 2)
+      ctx.fillStyle = grad
       ctx.fill()
-      ctx.strokeStyle = color
-      ctx.lineWidth = 1
-      ctx.stroke()
     }
   }, [state, wards])
 
