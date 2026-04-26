@@ -23,6 +23,7 @@ from backend.data_dragon import get_champion_map, get_item_data, get_latest_vers
 from backend.analysis.match_analysis import analyze_match_history
 from backend.analysis.champion_stats import analyze_champion_stats
 from backend.ai_coach import generate_coaching
+from backend.analysis.meta_fetcher import get_full_meta_cache, get_cache_patch
 
 try:
     from backend.analysis.meta_analysis import analyze_meta_gaps as _analyze_meta_gaps
@@ -331,6 +332,51 @@ def coach_match():
         return jsonify({"error": str(exc)}), 500
     except Exception as exc:
         return jsonify({"error": f"Coach error: {exc}"}), 500
+
+
+@app.route("/api/tierlist")
+def tierlist():
+    role = request.args.get("role", "adc").strip().lower()
+    lane_map = {
+        "bot": "adc", "bottom": "adc",
+        "sup": "support",
+        "jgl": "jungle",
+        "middle": "mid",
+    }
+    lane = lane_map.get(role, role)
+
+    meta = get_full_meta_cache()
+    patch = get_cache_patch()
+    dd_version = get_latest_version()
+
+    champions = []
+    for key, entry in meta.items():
+        parts = key.rsplit("_", 1)
+        if len(parts) != 2:
+            continue
+        champ_name, champ_lane = parts
+        if champ_lane != lane:
+            continue
+        champions.append({
+            "name": champ_name,
+            "tier": entry.get("tier") or "C",
+            "win_rate": entry.get("win_rate"),
+            "pick_rate": entry.get("pick_rate"),
+            "ban_rate": entry.get("ban_rate"),
+            "best_items": entry.get("best_items", []),
+            "keystone_id": entry.get("keystone_id"),
+        })
+
+    tier_order = {"OP": 0, "S": 1, "A": 2, "B": 3, "C": 4}
+    champions.sort(key=lambda x: (tier_order.get(x["tier"], 4), -(x["win_rate"] or 0)))
+
+    return jsonify({
+        "role": lane,
+        "patch": patch,
+        "dd_version": dd_version,
+        "rune_tree": _get_rune_tree(),
+        "champions": champions,
+    })
 
 
 @app.route("/api/health")

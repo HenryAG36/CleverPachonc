@@ -169,3 +169,20 @@ def get_champion_meta(champion_name: str, role: str, tier: str) -> dict | None:
         "play_rate": play_rate,
         "primary_role": primary_role,
     }
+
+
+def get_full_meta_cache() -> dict:
+    """Return the full meta cache dict (all champions, all roles)."""
+    return _load_meta_cache() or {}
+
+
+def get_cache_patch() -> str:
+    """Return the patch string stored in meta_cache.json."""
+    path = os.path.abspath(META_CACHE_FILE)
+    if not os.path.exists(path):
+        return "unknown"
+    try:
+        with open(path) as f:
+            return json.load(f).get("patch", "unknown")
+    except Exception:
+        return "unknown"
