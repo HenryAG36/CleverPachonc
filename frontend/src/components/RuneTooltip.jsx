@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 const DDR_BASE = 'https://ddragon.leagueoflegends.com/cdn/img/'
 const TOOLTIP_WIDTH = 288 // w-72
@@ -56,9 +57,7 @@ function RunePath({ path, selectedIds, isSecondary }) {
 }
 
 export default function RuneTooltip({ perks, runeTree, children }) {
-  const [visible, setVisible] = useState(false)
-  // 'left' = tooltip right-anchored | 'right' = left-anchored | 'center' = centered
-  const [align, setAlign] = useState('center')
+  const [tooltipStyle, setTooltipStyle] = useState(null)
   const triggerRef = useRef(null)
 
   if (!perks?.styles?.length || !runeTree?.length) return <>{children}</>
@@ -70,36 +69,39 @@ export default function RuneTooltip({ perks, runeTree, children }) {
   const selectedIds = getSelectedIds(perks)
 
   function handleMouseEnter() {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect()
-      const mid = rect.left + rect.width / 2
-      if (mid - TOOLTIP_WIDTH / 2 < 8) {
-        setAlign('right')   // too close to left edge — anchor tooltip left
-      } else if (mid + TOOLTIP_WIDTH / 2 > window.innerWidth - 8) {
-        setAlign('left')    // too close to right edge — anchor tooltip right
-      } else {
-        setAlign('center')
-      }
-    }
-    setVisible(true)
-  }
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
 
-  const posClass =
-    align === 'right' ? 'left-0' :
-    align === 'left'  ? 'right-0' :
-    'left-1/2 -translate-x-1/2'
+    // Center the tooltip horizontally over the trigger, clamped to viewport
+    let left = rect.left + rect.width / 2 - TOOLTIP_WIDTH / 2
+    if (left < 8) left = 8
+    if (left + TOOLTIP_WIDTH > window.innerWidth - 8) {
+      left = window.innerWidth - 8 - TOOLTIP_WIDTH
+    }
+
+    setTooltipStyle({
+      position: 'fixed',
+      top: rect.top - 8,
+      left,
+      // translateY(-100%) moves the tooltip above the trigger
+      transform: 'translateY(-100%)',
+      width: TOOLTIP_WIDTH,
+      zIndex: 9999,
+      pointerEvents: 'none',
+    })
+  }
 
   return (
     <div
       ref={triggerRef}
       className="relative inline-block"
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={() => setVisible(false)}
+      onMouseLeave={() => setTooltipStyle(null)}
     >
       {children}
-      {visible && (
-        <div className={`absolute z-50 bottom-full ${posClass} mb-2 pointer-events-none`}>
-          <div className="bg-zar-bg2 border border-zar-border rounded-xl p-3 shadow-2xl w-72">
+      {tooltipStyle && createPortal(
+        <div style={tooltipStyle}>
+          <div className="bg-zar-bg2 border border-zar-border rounded-xl p-3 shadow-2xl">
             <div className="flex gap-3">
               <RunePath path={primaryPath} selectedIds={selectedIds} isSecondary={false} />
               <div className="w-px bg-zar-border shrink-0" />
@@ -115,7 +117,8 @@ export default function RuneTooltip({ perks, runeTree, children }) {
             )}
           </div>
           <div className="w-2 h-2 bg-zar-bg2 border-r border-b border-zar-border rotate-45 mx-auto -mt-1" />
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
