@@ -204,8 +204,8 @@ async def get_summoner_data_async(
                     semaphore=sem,
                 )
                 for mid in match_ids[:20]
-            ])
-            match_details = [m for m in results if m is not None]
+            ], return_exceptions=True)
+            match_details = [m for m in results if isinstance(m, dict)]
 
     # ── Step 4: compute analytics from the same match_details ───────
     streak = _compute_streak(match_details, puuid)

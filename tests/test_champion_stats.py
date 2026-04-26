@@ -1,3 +1,4 @@
+import pytest
 from backend.analysis.champion_stats import analyze_champion_stats
 from .conftest import make_match, make_participant
 
@@ -78,6 +79,3 @@ def test_per_minute_stats_positive(puuid):
     stats = analyze_champion_stats([match], puuid)
     assert stats["Jinx"]["cs_per_min"] == pytest.approx(190 / 30, rel=1e-3)
     assert stats["Jinx"]["gold_per_min"] > 0
-
-
-import pytest

@@ -4,7 +4,10 @@ const REGIONS = ['NA', 'EUW', 'EUNE', 'KR', 'BR', 'LAN', 'LAS', 'OCE', 'TR', 'RU
 
 export default function SearchBar({ onSearch, disabled }) {
   const [name, setName] = useState('')
-  const [region, setRegion] = useState('NA')
+  const [region, setRegion] = useState(() => {
+    const saved = localStorage.getItem('cleverpachonc_region')
+    return REGIONS.includes(saved) ? saved : 'NA'
+  })
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -16,7 +19,7 @@ export default function SearchBar({ onSearch, disabled }) {
     <form onSubmit={handleSubmit} className="bg-apple-card rounded-2xl flex items-center p-1.5 gap-2 max-w-xl mx-auto">
       <select
         value={region}
-        onChange={e => setRegion(e.target.value)}
+        onChange={e => { setRegion(e.target.value); localStorage.setItem('cleverpachonc_region', e.target.value) }}
         disabled={disabled}
         className="bg-transparent text-white text-sm focus:outline-none disabled:opacity-50 px-2 py-2 cursor-pointer"
       >
