@@ -27,7 +27,7 @@ AI-powered coaching — all in a clean dark-themed web UI.
 |---|---|
 | Backend | Python 3.12 + Flask (Vercel serverless) |
 | API calls | asyncio + aiohttp (concurrent, rate-limit-aware) |
-| AI coaching | Anthropic Claude API |
+| AI coaching | Ollama cloud API (Mistral model) |
 | Frontend | React 18 + Vite + Tailwind CSS |
 | Charts | Recharts |
 | Champion data | Riot Data Dragon CDN |
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env and set:
 #   RIOT_API_KEY=RGAPI-...
-#   ANTHROPIC_API_KEY=sk-ant-...
+#   OLLAMA_API_KEY=...
 
 # 3. Start the Flask backend
 FLASK_APP=api/index.py flask run --port 5000
@@ -65,7 +65,7 @@ npm run dev
 
 1. Push the repo to GitHub.
 2. Import the project into Vercel.
-3. In **Project Settings → Environment Variables**, add `RIOT_API_KEY` and `ANTHROPIC_API_KEY`.
+3. In **Project Settings → Environment Variables**, add `RIOT_API_KEY` and `OLLAMA_API_KEY`.
 4. Deploy — Vercel uses `vercel.json` to build the frontend and serve the Flask function.
 
 ## Meta cache (GitHub Actions)
@@ -97,8 +97,7 @@ Riot Games, Inc.
 
 CleverPachonc has no database. The only data transmitted to the server is the Riot ID and
 region you type into the search box, which is forwarded to the Riot Games API and immediately
-discarded. AI coaching submits match statistics (no personal account details) to the Anthropic
-Claude API. See the in-app Privacy Policy (footer) for full details.
+discarded. AI coaching submits match statistics (no personal account details) to the Ollama cloud API. See the in-app Privacy Policy (footer) for full details.
 
 ## Project structure
 
@@ -136,6 +135,8 @@ pytest tests/ -v
 ## Credits
 
 **Developer:** Henry Garban
+
+**AI coaching engine:** Ollama cloud (Mistral model)
 
 **AI pair programming:** Claude (Anthropic)
 

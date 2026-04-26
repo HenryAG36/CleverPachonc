@@ -61,27 +61,18 @@ export default function PrivacyModal({ onClose }) {
               >
                 Meraki Analytics
               </a>
-              . AI coaching analysis is powered by the{' '}
+              . AI coaching analysis is powered by{' '}
               <a
-                href="https://www.anthropic.com/privacy"
+                href="https://ollama.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-zar-cyan hover:underline"
               >
-                Anthropic Claude API
+                Ollama
               </a>
-              ; match data submitted for coaching is processed by Anthropic's servers and
-              subject to their{' '}
-              <a
-                href="https://www.anthropic.com/legal/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zar-cyan hover:underline"
-              >
-                Privacy Policy
-              </a>
-              . No personally identifiable information beyond in-game summoner names is
-              transmitted.
+              {' '}cloud AI; match statistics (champion name, KDA, items, and role — no account
+              details) are submitted to Ollama&apos;s servers for analysis. No personally
+              identifiable information is transmitted.
             </p>
           </section>
 
