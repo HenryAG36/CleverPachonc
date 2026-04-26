@@ -139,10 +139,6 @@ pytest tests/ -v
 
 **AI pair programming:** Claude (Anthropic)
 
-- Twitch: [twitch.tv/Kaseash](https://twitch.tv/Kaseash)
-- TikTok: [@Kaseash](https://tiktok.com/@Kaseash)
-- YouTube: [@Kaseash](https://youtube.com/@Kaseash)
-
 ## License
 
 MIT — see [LICENSE](LICENSE). If you use this code, please credit the original project.
