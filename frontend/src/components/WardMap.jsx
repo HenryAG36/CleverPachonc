@@ -31,7 +31,7 @@ const WARD_COLORS = {
   UNDEFINED: 'rgba(255,255,255,0.5)',
 }
 
-export default function WardMap({ matchId, region, puuid }) {
+export default function WardMap({ matchId, region, puuid, ddVersion }) {
   const [state, setState] = useState('idle') // idle | loading | done | error
   const [wards, setWards] = useState([])
   const [error, setError] = useState(null)
@@ -116,11 +116,12 @@ export default function WardMap({ matchId, region, puuid }) {
       <p className="section-title mb-2">Ward Map</p>
       <div className="relative inline-block rounded-xl overflow-hidden border border-zar-border">
         <img
-          src="https://ddragon.leagueoflegends.com/cdn/img/map/map11.png"
+          src={`https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/map/map11.png`}
           alt="Summoner's Rift"
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
           className="block opacity-70"
+          onError={e => { e.target.style.background = '#0d1117' }}
         />
         <canvas
           ref={canvasRef}

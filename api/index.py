@@ -284,20 +284,22 @@ def match_timeline():
     if not timeline:
         return jsonify({"ward_events": []})
 
-    # Find the player's participantId from timeline metadata
-    participants_meta = timeline.get("info", {}).get("participants", [])
-    player_pid = next(
-        (p["participantId"] for p in participants_meta if p.get("puuid") == puuid),
-        None,
-    )
+    # In Riot's v5 timeline, participants are at metadata.participants
+    # as a flat list of PUUID strings; index 0 = participantId 1.
+    puuid_list = timeline.get("metadata", {}).get("participants", [])
+    player_pid = None
+    for idx, p_puuid in enumerate(puuid_list):
+        if p_puuid == puuid:
+            player_pid = idx + 1  # participantId is 1-indexed
+            break
 
     ward_events = []
     for frame in timeline.get("info", {}).get("frames", []):
         for event in frame.get("events", []):
             if event.get("type") != "WARD_PLACED":
                 continue
-            pos = event.get("position", {})
-            if not pos:
+            pos = event.get("position")
+            if not pos or "x" not in pos:
                 continue
             creator_id = event.get("creatorId")
             if player_pid is not None and creator_id != player_pid:

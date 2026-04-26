@@ -120,7 +120,7 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
 
           {/* Ward Map */}
           {resolvedPuuid && (
-            <WardMap matchId={match.matchId} region={region} puuid={resolvedPuuid} />
+            <WardMap matchId={match.matchId} region={region} puuid={resolvedPuuid} ddVersion={ddVersion} />
           )}
 
           {/* Match AI Coach */}

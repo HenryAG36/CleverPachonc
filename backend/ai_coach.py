@@ -354,7 +354,7 @@ def generate_match_coaching(match: dict, player_puuid: str, ranked: list) -> dic
             {"role": "user", "content": user_prompt},
         ],
         temperature=0.2,
-        max_tokens=500,
+        max_tokens=750,
     )
 
     content = response.choices[0].message.content.strip()
