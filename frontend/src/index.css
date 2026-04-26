@@ -1,37 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    background-color: #000000;
+    background-color: #0d1117;
     color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
 }
 
 @layer components {
   .card {
-    @apply bg-apple-card rounded-2xl p-5 shadow-lg;
+    @apply bg-zar-card rounded-xl p-5 border border-zar-border;
   }
   .card-sm {
-    @apply bg-apple-card2 rounded-xl p-4;
+    @apply bg-zar-card2 rounded-lg p-4 border border-zar-border;
   }
   .section-title {
-    @apply text-xs font-semibold text-apple-text-secondary uppercase tracking-widest mb-3;
+    @apply text-[10px] font-bold text-zar-text-secondary uppercase tracking-[0.15em] mb-3;
   }
   .stat-row {
-    @apply flex justify-between items-center text-sm py-2 border-b border-apple-separator last:border-0;
+    @apply flex justify-between items-center text-sm py-2.5 border-b border-zar-border last:border-0;
   }
   .stat-label {
-    @apply text-apple-text-secondary;
+    @apply text-zar-text-secondary;
   }
-  .apple-btn {
-    @apply bg-apple-blue text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all duration-200 ease-out;
+  .zar-btn {
+    @apply bg-zar-pink text-white font-bold px-5 py-2.5 rounded-lg text-sm tracking-wide transition-all duration-200 hover:bg-zar-pink-light active:scale-95;
+  }
+  .zar-btn-ghost {
+    @apply border border-zar-border text-zar-text-secondary font-semibold px-5 py-2.5 rounded-lg text-sm tracking-wide transition-all duration-200 hover:border-zar-cyan hover:text-zar-cyan;
   }
 }

@@ -1,7 +1,3 @@
-/**
- * Shows the player's actual core items vs meta-optimal items side by side.
- * Mismatched meta items are highlighted to draw attention to build gaps.
- */
 export default function BuildComparison({ championName, playerItems, metaItems, ddVersion }) {
   if (!playerItems?.length && !metaItems?.length) return null
 
@@ -11,7 +7,7 @@ export default function BuildComparison({ championName, playerItems, metaItems, 
     if (!itemId || itemId === 0) return null
     const url = `https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/item/${itemId}.png`
     return (
-      <div className={`relative w-8 h-8 rounded overflow-hidden ${isMismatch ? 'ring-2 ring-apple-yellow/60' : ''}`}>
+      <div className={`relative w-8 h-8 rounded overflow-hidden ${isMismatch ? 'ring-2 ring-zar-yellow/60' : ''}`}>
         <img
           src={url}
           alt={String(itemId)}
@@ -23,12 +19,12 @@ export default function BuildComparison({ championName, playerItems, metaItems, 
   }
 
   return (
-    <div className="bg-apple-card2 rounded-xl p-3 space-y-2">
-      <p className="text-xs font-semibold">{championName}</p>
+    <div className="bg-zar-card2 border border-zar-border rounded-lg p-3 space-y-2">
+      <p className="text-xs font-bold text-white">{championName}</p>
 
       {playerItems?.length > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-apple-text-tertiary w-12 shrink-0">Your build</span>
+          <span className="text-[10px] text-zar-text-tertiary w-14 shrink-0 uppercase tracking-wide font-semibold">Your build</span>
           <div className="flex gap-1 flex-wrap">
             {playerItems.slice(0, 6).map((item, i) => (
               <ItemIcon key={i} itemId={item.item_id} isMismatch={false} />
@@ -39,13 +35,13 @@ export default function BuildComparison({ championName, playerItems, metaItems, 
 
       {metaItems?.length > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-apple-text-tertiary w-12 shrink-0">Meta best</span>
+          <span className="text-[10px] text-zar-text-tertiary w-14 shrink-0 uppercase tracking-wide font-semibold">Meta best</span>
           <div className="flex gap-1 flex-wrap">
             {metaItems.slice(0, 6).map((item, i) => (
               <ItemIcon key={i} itemId={item.id} isMismatch={!playerIds.has(item.id)} />
             ))}
           </div>
-          <span className="text-[10px] text-apple-yellow ml-1">← highlighted = consider swapping</span>
+          <span className="text-[10px] text-zar-yellow ml-1">← consider swapping</span>
         </div>
       )}
     </div>

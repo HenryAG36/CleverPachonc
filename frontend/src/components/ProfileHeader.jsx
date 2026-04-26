@@ -3,27 +3,31 @@ export default function ProfileHeader({ summoner, ddVersion }) {
     `https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/profileicon/${summoner.profileIconId}.png`
 
   return (
-    <div className="card flex items-center gap-5">
+    <div className="card flex items-center gap-5 mt-6">
       <div className="relative shrink-0">
-        <img
-          src={iconUrl}
-          alt="Profile icon"
-          className="w-20 h-20 rounded-full ring-2 ring-white/20"
-          onError={e => { e.target.style.display = 'none' }}
-        />
-        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-apple-card2 text-apple-text-secondary text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap">
-          {summoner.summonerLevel}
+        <div className="w-20 h-20 rounded-full ring-2 ring-zar-pink/50 ring-offset-2 ring-offset-zar-card overflow-hidden">
+          <img
+            src={iconUrl}
+            alt="Profile icon"
+            className="w-full h-full object-cover"
+            onError={e => { e.target.style.display = 'none' }}
+          />
+        </div>
+        <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-zar-card2 border border-zar-border text-zar-cyan text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap uppercase tracking-wider">
+          Lv {summoner.summonerLevel}
         </span>
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold leading-tight">
+        <h2 className="text-2xl font-black leading-tight tracking-tight">
           {summoner.gameName}
           {summoner.tagLine && (
-            <span className="text-apple-text-secondary text-lg font-normal"> #{summoner.tagLine}</span>
+            <span className="text-zar-text-secondary text-base font-medium"> #{summoner.tagLine}</span>
           )}
         </h2>
-        <p className="text-apple-text-secondary text-sm mt-0.5">Level {summoner.summonerLevel}</p>
+        <p className="text-zar-text-tertiary text-xs uppercase tracking-widest mt-1 font-semibold">
+          Summoner Profile
+        </p>
       </div>
     </div>
   )

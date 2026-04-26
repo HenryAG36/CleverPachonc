@@ -14,12 +14,11 @@ export default function StatsView({ data }) {
   const hasChampStats = champion_stats && Object.keys(champion_stats).length > 0
 
   return (
-    <div className="space-y-8 mt-6">
+    <div className="space-y-8 mt-2">
       <ProfileHeader summoner={summoner} ddVersion={dd_version} />
 
       {hasMatches && <WinRateChart matches={matches} />}
 
-      {/* Pre-Session Advisor — shown when meta data is available */}
       {meta && <PreSessionCard meta={meta} ddVersion={dd_version} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -30,7 +29,7 @@ export default function StatsView({ data }) {
               {ranked.map(q => <RankedCard key={q.queueType} queue={q} />)}
             </div>
           ) : (
-            <div className="card text-apple-text-secondary text-sm text-center py-10">
+            <div className="card text-zar-text-secondary text-sm text-center py-10">
               No ranked data this season
             </div>
           )}
