@@ -184,7 +184,7 @@ async def get_summoner_data_async(
                 session,
                 f"https://{routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids",
                 headers,
-                params={"queue": 420, "count": 20},
+                params={"count": 20},
             ),
         )
 

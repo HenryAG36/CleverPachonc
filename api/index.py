@@ -19,7 +19,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from backend.riot_api import get_summoner_data_async
-from backend.data_dragon import get_champion_map, get_item_data, get_latest_version
+from backend.data_dragon import get_champion_map, get_item_data, get_latest_version, get_rune_tree
 from backend.analysis.match_analysis import analyze_match_history
 from backend.analysis.champion_stats import analyze_champion_stats
 from backend.ai_coach import generate_coaching
@@ -41,6 +41,7 @@ STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 # Module-level cache — reused across warm invocations on Vercel
 _champion_map = None
 _item_data = None
+_rune_tree = None
 
 
 def _get_champion_map():
@@ -55,6 +56,13 @@ def _get_item_data():
     if _item_data is None:
         _item_data = get_item_data()
     return _item_data
+
+
+def _get_rune_tree():
+    global _rune_tree
+    if _rune_tree is None:
+        _rune_tree = get_rune_tree()
+    return _rune_tree
 
 
 @app.route("/api/summoner")
@@ -112,17 +120,22 @@ def summoner():
         })
 
     # ── Format match list ────────────────────────────────────────────
+    RANKED_QUEUES = {420, 440}  # solo, flex — filter everything else
+
     formatted_matches = []
     for match in matches:
+        queue_id = match["info"].get("queueId", 0)
+        if queue_id not in RANKED_QUEUES:
+            continue
         try:
             p = next(x for x in match["info"]["participants"] if x["puuid"] == puuid)
         except StopIteration:
             continue
+
         champ_id = str(p["championId"])
         player_position = p.get("teamPosition", "")
 
-        # Find the enemy in the same position for matchup analysis
-        enemy_carry: str | None = None
+        enemy_carry = None
         if player_position:
             enemy_carry = next(
                 (
@@ -133,7 +146,32 @@ def summoner():
                 None,
             )
 
+        # Build full 10-player scoreboard (no rank — avoids 10 extra API calls on personal key)
+        all_participants = []
+        for part in match["info"]["participants"]:
+            pid = str(part["championId"])
+            all_participants.append({
+                "puuid": part.get("puuid", ""),
+                "riotIdGameName": part.get("riotIdGameName") or part.get("summonerName", ""),
+                "riotIdTagline": part.get("riotIdTagline", ""),
+                "championName": champion_map.get(pid, "Unknown"),
+                "championId": part["championId"],
+                "teamId": part["teamId"],
+                "teamPosition": part.get("teamPosition", ""),
+                "kills": part["kills"],
+                "deaths": part["deaths"],
+                "assists": part["assists"],
+                "damage": part.get("totalDamageDealtToChampions", 0),
+                "gold": part.get("goldEarned", 0),
+                "cs": part.get("totalMinionsKilled", 0) + part.get("neutralMinionsKilled", 0),
+                "items": [part.get(f"item{i}", 0) for i in range(7)],
+                "perks": part.get("perks", {}),
+                "win": part["win"],
+            })
+
         formatted_matches.append({
+            "matchId": match["metadata"]["matchId"],
+            "queueId": queue_id,
             "champion": champion_map.get(champ_id, "Unknown"),
             "championId": p["championId"],
             "win": p["win"],
@@ -141,11 +179,12 @@ def summoner():
             "kills": p["kills"],
             "deaths": p["deaths"],
             "assists": p["assists"],
-            "cs": p["totalMinionsKilled"] + p.get("neutralMinionsKilled", 0),
+            "cs": p.get("totalMinionsKilled", 0) + p.get("neutralMinionsKilled", 0),
             "duration": match["info"]["gameDuration"] // 60,
             "role": player_position,
             "items": [p.get(f"item{i}", 0) for i in range(7)],
             "enemy_carry": enemy_carry,
+            "participants": all_participants,
         })
 
     # ── Run analysis on raw match data ───────────────────────────────
@@ -193,6 +232,7 @@ def summoner():
         "champion_stats": champ_stats,
         "match_analysis": serialised_analysis,
         "meta": meta_summary,
+        "rune_tree": _get_rune_tree(),
     })
 
 
@@ -208,6 +248,87 @@ def coach():
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": f"Coach error: {e}"}), 500
+
+
+@app.route("/api/match/timeline")
+def match_timeline():
+    match_id = request.args.get("id", "").strip()
+    region = request.args.get("region", "NA").strip()
+    puuid = request.args.get("puuid", "").strip()
+
+    if not match_id or not puuid:
+        return jsonify({"error": "id and puuid required"}), 400
+
+    from backend.utils.constants import MATCH_ROUTING, get_api_key
+    import aiohttp
+    from backend.riot_api import _get
+
+    routing = MATCH_ROUTING.get(region.upper(), "americas")
+    api_key = get_api_key()
+    if not api_key:
+        return jsonify({"error": "API key not configured"}), 500
+
+    async def _fetch():
+        async with aiohttp.ClientSession() as session:
+            return await _get(
+                session,
+                f"https://{routing}.api.riotgames.com/lol/match/v5/matches/{match_id}/timeline",
+                {"X-Riot-Token": api_key},
+            )
+
+    try:
+        timeline = asyncio.run(_fetch())
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    if not timeline:
+        return jsonify({"ward_events": []})
+
+    # Find the player's participantId from timeline metadata
+    participants_meta = timeline.get("info", {}).get("participants", [])
+    player_pid = next(
+        (p["participantId"] for p in participants_meta if p.get("puuid") == puuid),
+        None,
+    )
+
+    ward_events = []
+    for frame in timeline.get("info", {}).get("frames", []):
+        for event in frame.get("events", []):
+            if event.get("type") != "WARD_PLACED":
+                continue
+            pos = event.get("position", {})
+            if not pos:
+                continue
+            creator_id = event.get("creatorId")
+            if player_pid is not None and creator_id != player_pid:
+                continue
+            ward_events.append({
+                "x": pos["x"],
+                "y": pos["y"],
+                "type": event.get("wardType", "UNKNOWN"),
+                "t": event.get("timestamp", 0),
+            })
+
+    return jsonify({"ward_events": ward_events})
+
+
+@app.route("/api/coach/match", methods=["POST"])
+def coach_match():
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"error": "JSON body required"}), 400
+    try:
+        from backend.ai_coach import generate_match_coaching
+        result = generate_match_coaching(
+            payload.get("match", {}),
+            payload.get("player_puuid", ""),
+            payload.get("ranked", []),
+        )
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 500
+    except Exception as exc:
+        return jsonify({"error": f"Coach error: {exc}"}), 500
 
 
 @app.route("/api/health")

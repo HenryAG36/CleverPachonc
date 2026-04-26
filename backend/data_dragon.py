@@ -77,3 +77,23 @@ def get_rune_data() -> Optional[Dict[str, Any]]:
         return runes
     except Exception:
         return None
+
+
+_cached_rune_tree = None
+
+def get_rune_tree():
+    """Return full runesReforged array for tooltip rendering."""
+    global _cached_rune_tree
+    if _cached_rune_tree is not None:
+        return _cached_rune_tree
+    version = get_latest_version()
+    try:
+        r = requests.get(
+            f"https://ddragon.leagueoflegends.com/cdn/{version}/data/en_US/runesReforged.json",
+            timeout=REQUEST_TIMEOUT,
+        )
+        r.raise_for_status()
+        _cached_rune_tree = r.json()
+        return _cached_rune_tree
+    except Exception:
+        return []

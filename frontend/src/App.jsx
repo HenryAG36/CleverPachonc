@@ -8,11 +8,13 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [loadingMsg, setLoadingMsg] = useState('Searching...')
+  const [searchState, setSearchState] = useState({ name: '', region: 'NA' })
 
   async function handleSearch(name, region) {
     setLoading(true)
     setError(null)
     setData(null)
+    setSearchState({ name, region })
     setLoadingMsg('Looking up account...')
     const messages = ['Looking up account...', 'Fetching ranked stats...', 'Loading match history...', 'Crunching the numbers...']
     let msgIdx = 0
@@ -78,7 +80,13 @@ export default function App() {
           </div>
         )}
 
-        {data && <StatsView data={data} />}
+        {data && (
+          <StatsView
+            data={data}
+            region={searchState.region}
+            playerName={data.summoner?.gameName || searchState.name}
+          />
+        )}
       </div>
 
       <Footer />

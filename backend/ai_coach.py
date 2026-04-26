@@ -282,3 +282,95 @@ def generate_coaching(payload: dict) -> dict:
     # Always attach meta so the frontend can render tier badges / pre-session card
     result["meta"] = meta
     return result
+
+
+def generate_match_coaching(match: dict, player_puuid: str, ranked: list) -> dict:
+    api_key = os.environ.get("OLLAMA_API_KEY", "")
+    if not api_key:
+        raise ValueError("OLLAMA_API_KEY is not configured on the server.")
+
+    participants = match.get("participants", [])
+    player = next((p for p in participants if p.get("puuid") == player_puuid), None)
+    if not player:
+        raise ValueError("Player not found in match participants.")
+
+    player_team = player.get("teamId", 100)
+    allies = [p for p in participants if p["teamId"] == player_team and p.get("puuid") != player_puuid]
+    enemies = [p for p in participants if p["teamId"] != player_team]
+
+    solo = next((q for q in ranked if q.get("queueType") == "RANKED_SOLO_5x5"), None)
+    rank_str = f"{solo['tier']} {solo['rank']}" if solo else "Unranked"
+
+    champ = player.get("championName", "Unknown")
+    role = player.get("teamPosition", "Unknown")
+    kda = f"{player['kills']}/{player['deaths']}/{player['assists']}"
+    damage = player.get("damage", 0)
+    cs = player.get("cs", 0)
+    duration = match.get("duration", 0)
+    result_str = "Victory" if player["win"] else "Defeat"
+    items_str = ",".join(str(i) for i in player.get("items", []) if i != 0)
+
+    ally_str = "|".join(
+        f"{p['championName']}({p['kills']}/{p['deaths']}/{p['assists']},{p['damage']}dmg)"
+        for p in allies
+    )
+    enemy_str = "|".join(
+        f"{p['championName']}({p['kills']}/{p['deaths']}/{p['assists']},{p['damage']}dmg)"
+        for p in enemies
+    )
+
+    context = (
+        f"player={champ}|role={role}|rank={rank_str}|result={result_str}\n"
+        f"kda={kda}|damage={damage}|cs={cs}|duration={duration}m|items={items_str}\n"
+        f"allies={ally_str}\n"
+        f"enemies={enemy_str}"
+    )
+
+    client = OpenAI(base_url="https://ollama.com/v1", api_key=api_key)
+
+    system_prompt = (
+        "You are an expert League of Legends coach analyzing a single match. "
+        "Give specific, actionable feedback referencing the player's actual numbers. "
+        "Rules: (1) Name the champion and role in every sentence where relevant. "
+        "(2) Reference actual stat values (damage, CS, KDA) — never say 'your stats'. "
+        "(3) key_mistake must be about a decision or pattern, not just a number. "
+        "(4) improvement must be a concrete drill with a measurable target. "
+        "Never return raw metric codes. Respond with valid JSON only, no markdown."
+    )
+
+    user_prompt = (
+        f"{context}\n\n"
+        "Return JSON exactly:\n"
+        '{"assessment":"2 sentences: how the game went and the single decisive factor",'
+        '"key_mistake":{"what":"specific mistake","why":"why it cost the game","fix":"concrete drill with measurable target"},'
+        '"strength":"1 sentence naming the champion, a specific stat with number, and the edge it gave",'
+        '"improvement":"1 concrete action for the next game with a measurable target"}'
+    )
+
+    response = client.chat.completions.create(
+        model="ministral-3:3b-cloud",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.2,
+        max_tokens=500,
+    )
+
+    content = response.choices[0].message.content.strip()
+    content = re.sub(r"^```(?:json)?\s*", "", content)
+    content = re.sub(r"\s*```$", "", content)
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        return {
+            "assessment": f"You played {champ} ({role}) in a {result_str.lower()}, going {kda} with {damage:,} damage dealt.",
+            "key_mistake": {
+                "what": "Could not parse detailed analysis",
+                "why": "AI response was truncated",
+                "fix": "Review the replay and note the moment you fell behind.",
+            },
+            "strength": f"Completed the game on {champ} with {kda} in a {duration}-minute game.",
+            "improvement": f"Focus on maintaining {cs} CS or higher in your next game on this champion.",
+        }

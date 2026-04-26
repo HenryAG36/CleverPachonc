@@ -7,6 +7,7 @@ import MatchHistory from './MatchHistory'
 import ChampionStats from './ChampionStats'
 import AICoach from './AICoach'
 import PreSessionCard from './PreSessionCard'
+import MatchDetailModal from './MatchDetailModal'
 
 const TABS = [
   { id: 'overview',  label: 'Overview' },
@@ -15,8 +16,9 @@ const TABS = [
   { id: 'coach',     label: 'AI Coach' },
 ]
 
-export default function StatsView({ data }) {
+export default function StatsView({ data, region, playerName }) {
   const [activeTab, setActiveTab] = useState('overview')
+  const [selectedMatch, setSelectedMatch] = useState(null)
   const { dd_version, summoner, ranked, mastery, matches, champion_stats, meta } = data
   const hasRanked = ranked?.length > 0
   const hasMatches = matches?.length > 0
@@ -92,7 +94,14 @@ export default function StatsView({ data }) {
 
         {/* Matches */}
         {activeTab === 'matches' && hasMatches && (
-          <MatchHistory matches={matches} ddVersion={dd_version} />
+          <MatchHistory
+            matches={matches}
+            ddVersion={dd_version}
+            runeTree={data.rune_tree}
+            onMatchClick={setSelectedMatch}
+            playerPuuid={null}
+            region={region}
+          />
         )}
 
         {/* Champions */}
@@ -106,6 +115,19 @@ export default function StatsView({ data }) {
         )}
 
       </div>
+
+      {selectedMatch && (
+        <MatchDetailModal
+          match={selectedMatch}
+          ddVersion={dd_version}
+          runeTree={data.rune_tree || []}
+          ranked={ranked}
+          playerPuuid={null}
+          playerName={playerName}
+          region={region}
+          onClose={() => setSelectedMatch(null)}
+        />
+      )}
     </div>
   )
 }
