@@ -157,15 +157,19 @@ def _build_findings_text(findings: dict, meta: dict | None) -> str:
 
     lines.append(f"focus={findings.get('weekly_focus', 'maintain_consistency')}")
 
-    # Meta context lines (~40 extra tokens when available)
+    # Meta context lines (~40 extra tokens when available).
+    # The cache can be pick-rate-only (win_rate/tier all None) — skip or
+    # reformat those lines rather than feeding literal "None%None" to the LLM.
     if meta:
         per_champ = meta.get("per_champ_meta", {})
         for champ, cm in list(per_champ.items())[:3]:
-            tier_label = cm.get("tier", "?")
-            meta_wr = cm.get("meta_wr", 0)
+            tier_label = cm.get("tier")
+            meta_wr = cm.get("meta_wr")
             build_gaps = cm.get("build_gaps", [])
             gap_str = f"|build_gap={len(build_gaps)}_items" if build_gaps else "|build=ok"
-            lines.append(f"meta_{champ.lower()}: wr={meta_wr}%({tier_label}){gap_str}")
+            if meta_wr is None:
+                continue  # no win-rate data for this champ — nothing useful to say
+            lines.append(f"meta_{champ.lower()}: wr={meta_wr}%({tier_label or '?'}){gap_str}")
 
         for mi in meta.get("matchup_insights", [])[:2]:
             enemy = mi["enemy"]
@@ -179,7 +183,13 @@ def _build_findings_text(findings: dict, meta: dict | None) -> str:
 
         picks = meta.get("meta_picks", [])
         if picks:
-            picks_str = ",".join(f"{p['name']}({p['wr']}%{p['tier']})" for p in picks[:3])
+            def _pick_str(p):
+                if p.get("wr") is not None:
+                    return f"{p['name']}({p['wr']}%{p.get('tier') or '?'})"
+                if p.get("pick_rate") is not None:
+                    return f"{p['name']}({p['pick_rate']}%pick_rate)"
+                return p["name"]
+            picks_str = ",".join(_pick_str(p) for p in picks[:3])
             lines.append(f"meta_top_pool: {picks_str}")
 
     return "\n".join(lines)

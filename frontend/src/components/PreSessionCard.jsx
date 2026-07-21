@@ -1,4 +1,5 @@
 import MetaTierBadge from './MetaTierBadge'
+import { championDisplayName } from '../utils/champions'
 
 const ROLE_DISPLAY = {
   TOP: 'Top', JUNGLE: 'Jungle', MIDDLE: 'Mid',
@@ -39,9 +40,14 @@ export default function PreSessionCard({ meta, ddVersion }) {
                 onError={e => { e.target.style.display = 'none' }}
               />
               <div>
-                <p className="font-bold text-sm">{bestPick.name}</p>
+                <p className="font-bold text-sm">{championDisplayName(bestPick.name)}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <MetaTierBadge tier={bestPick.tier} wr={bestPick.wr} size="xs" />
+                  {bestPick.wr == null && bestPick.pick_rate != null && (
+                    <span className="text-[10px] text-zar-cyan font-bold">
+                      {bestPick.pick_rate}% pick rate
+                    </span>
+                  )}
                   {bestPick.role && (
                     <span className="text-[10px] text-zar-text-secondary">
                       {ROLE_DISPLAY[bestPick.role] ?? bestPick.role}
@@ -71,7 +77,7 @@ export default function PreSessionCard({ meta, ddVersion }) {
                 </div>
               </div>
               <div>
-                <p className="font-bold text-sm">{banSuggestion.enemy}</p>
+                <p className="font-bold text-sm">{championDisplayName(banSuggestion.enemy)}</p>
                 <p className="text-[10px] text-zar-text-secondary mt-0.5">
                   {banSuggestion.losses > 0 ? `You went 0-${banSuggestion.losses} vs them` : 'Hard counter'}
                   {banSuggestion.meta_wr != null && (

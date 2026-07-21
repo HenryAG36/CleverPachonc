@@ -121,7 +121,7 @@ CleverPachonc/
 │   └── fetch_meta_cache.py   # Meraki CDN fetch script (run by Actions)
 ├── .github/workflows/
 │   └── fetch_meta.yml        # Daily cache refresh workflow
-└── tests/                    # pytest test suite (54 tests)
+└── tests/                    # pytest test suite (57 tests)
 ```
 
 ## Running tests
@@ -130,7 +130,8 @@ CleverPachonc/
 pytest tests/ -v
 ```
 
-54 tests cover match analysis, champion stats aggregation, rune analysis, and meta gap logic.
+57 tests cover match analysis, champion stats aggregation, rune analysis, meta gap logic,
+and an end-to-end test of the /api/summoner route with mocked Riot data.
 
 ## Credits
 

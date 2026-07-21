@@ -135,8 +135,10 @@ def get_champion_meta(champion_name: str, role: str, tier: str) -> dict | None:
                 "tier": entry.get("tier") or (
                     _tier_label(entry["win_rate"]) if entry.get("win_rate") else None
                 ),
+                "pick_rate": entry.get("pick_rate"),
                 "best_items": entry.get("best_items", []),
-                "keystone": entry.get("keystone"),
+                # cache stores the field as keystone_id (see scripts/fetch_meta_cache.py)
+                "keystone": entry.get("keystone_id"),
                 "matchups": entry.get("matchups", {}),
             }
         # Cache exists but champion missing — return None rather than falling back
@@ -158,11 +160,13 @@ def get_champion_meta(champion_name: str, role: str, tier: str) -> dict | None:
 
     primary_role = max(champ_rates, key=lambda r: champ_rates[r].get("playRate", 0))
     meraki_key = role.upper() if role.upper() in champ_rates else primary_role
-    play_rate = round(champ_rates[meraki_key].get("playRate", 0) * 100, 1)
+    # Meraki playRate is already a percentage (same scale the cache stores)
+    play_rate = round(champ_rates[meraki_key].get("playRate", 0), 1)
 
     return {
         "win_rate": None,   # Meraki doesn't provide WR
         "tier": None,
+        "pick_rate": play_rate,
         "best_items": [],
         "keystone": None,
         "matchups": {},

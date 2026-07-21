@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import RuneTooltip from './RuneTooltip'
 import WardMap from './WardMap'
+import { championDisplayName } from '../utils/champions'
+import { fetchJson } from '../utils/fetchJson'
+import { useModal } from '../utils/useModal'
 
 const QUEUE_NAMES = { 420: 'Ranked Solo', 440: 'Ranked Flex', 450: 'ARAM', 400: 'Normal', 430: 'Normal' }
-const ROLE_LABELS = { TOP: 'Top', JUNGLE: 'JGL', MIDDLE: 'Mid', BOTTOM: 'Bot', UTILITY: 'Sup' }
 
 function renderMd(text) {
   if (!text) return null
@@ -23,12 +25,8 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
     p => p.riotIdGameName?.toLowerCase() === (playerName?.split('#')[0] || '').toLowerCase()
   )?.puuid || ''
 
-  // Close on backdrop click or Escape
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  // Escape, scroll lock, and focus trap (shared with the other modals)
+  const dialogRef = useModal(onClose)
 
   const blueTeam = match.participants?.filter(p => p.teamId === 100) || []
   const redTeam = match.participants?.filter(p => p.teamId === 200) || []
@@ -41,7 +39,7 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
     setCoachError(null)
     setCoaching(null)
     try {
-      const res = await fetch('/api/coach/match', {
+      const json = await fetchJson('/api/coach/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -50,8 +48,6 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
           ranked,
         }),
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Analysis failed')
       setCoaching(json)
     } catch (e) {
       setCoachError(e.message)
@@ -67,7 +63,12 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="bg-zar-bg2 border border-zar-border rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Match details — ${championDisplayName(match.champion)} ${match.result}`}
+        className="bg-zar-bg2 border border-zar-border rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto focus:outline-none"
         style={{ boxShadow: '0 25px 80px rgba(0,0,0,0.6)' }}
       >
         {/* Header */}
@@ -90,11 +91,11 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
                 <span className="text-xs text-zar-text-tertiary">{QUEUE_NAMES[match.queueId] || 'Game'} · {match.duration}m</span>
               </div>
               <p className="text-sm font-semibold text-white">
-                {match.champion} · {match.kills}/{match.deaths}/{match.assists}
+                {championDisplayName(match.champion)} · {match.kills}/{match.deaths}/{match.assists}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-zar-text-secondary hover:text-white transition-colors p-1">
+          <button onClick={onClose} aria-label="Close match details" className="text-zar-text-secondary hover:text-white transition-colors p-1">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -198,9 +199,25 @@ export default function MatchDetailModal({ match, ddVersion, runeTree, ranked, p
 }
 
 function TeamPanel({ team, teamColor, teamLabel, ddVersion, runeTree, maxDamage, playerPuuid }) {
+  const kills = team.reduce((sum, p) => sum + p.kills, 0)
+  const gold = team.reduce((sum, p) => sum + (p.gold || 0), 0)
+  const won = team[0]?.win
+
   return (
     <div>
-      <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${teamColor}`}>{teamLabel}</p>
+      <div className="flex items-baseline justify-between mb-2">
+        <p className={`text-[10px] font-bold uppercase tracking-widest ${teamColor}`}>
+          {teamLabel}
+          {won != null && (
+            <span className={`ml-1.5 ${won ? 'text-zar-green' : 'text-zar-red'}`}>
+              · {won ? 'Victory' : 'Defeat'}
+            </span>
+          )}
+        </p>
+        <p className="text-[10px] text-zar-text-tertiary tabular-nums">
+          {kills} kills · {(gold / 1000).toFixed(1)}k gold
+        </p>
+      </div>
       <div className="space-y-1">
         {team.map((p, i) => {
           const isPlayer = p.puuid === playerPuuid
@@ -220,7 +237,7 @@ function TeamPanel({ team, teamColor, teamLabel, ddVersion, runeTree, maxDamage,
             >
               <img
                 src={`https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/champion/${p.championName}.png`}
-                alt={p.championName}
+                alt={championDisplayName(p.championName)}
                 className="w-7 h-7 rounded shrink-0"
                 onError={e => { e.target.style.display = 'none' }}
               />
@@ -243,7 +260,7 @@ function TeamPanel({ team, teamColor, teamLabel, ddVersion, runeTree, maxDamage,
 
               <div className="flex-1 min-w-0">
                 <p className={`text-xs font-semibold truncate ${isPlayer ? 'text-zar-cyan' : 'text-white'}`}>
-                  {p.riotIdGameName || p.championName}
+                  {p.riotIdGameName || championDisplayName(p.championName)}
                 </p>
                 <p className="text-[10px] text-zar-text-tertiary">
                   {p.kills}/{p.deaths}/{p.assists} · {p.cs}CS

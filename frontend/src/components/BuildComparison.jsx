@@ -1,3 +1,5 @@
+import { championDisplayName } from '../utils/champions'
+
 export default function BuildComparison({ championName, playerItems, metaItems, ddVersion }) {
   if (!playerItems?.length && !metaItems?.length) return null
 
@@ -20,7 +22,7 @@ export default function BuildComparison({ championName, playerItems, metaItems, 
 
   return (
     <div className="bg-zar-card2 border border-zar-border rounded-lg p-3 space-y-2">
-      <p className="text-xs font-bold text-white">{championName}</p>
+      <p className="text-xs font-bold text-white">{championDisplayName(championName)}</p>
 
       {playerItems?.length > 0 && (
         <div className="flex items-center gap-2">

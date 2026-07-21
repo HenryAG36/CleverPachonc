@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { fetchJson } from '../utils/fetchJson'
 
 // Common high-elo vision control zones on Summoner's Rift
 // Coordinates match League's game coordinate system (0–14870)
@@ -40,11 +41,9 @@ export default function WardMap({ matchId, region, puuid, ddVersion }) {
   async function loadWards() {
     setState('loading')
     try {
-      const res = await fetch(
+      const json = await fetchJson(
         `/api/match/timeline?id=${encodeURIComponent(matchId)}&region=${encodeURIComponent(region)}&puuid=${encodeURIComponent(puuid)}`
       )
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Failed to load ward data')
       setWards(json.ward_events || [])
       setState('done')
     } catch (e) {
@@ -126,20 +125,19 @@ export default function WardMap({ matchId, region, puuid, ddVersion }) {
   return (
     <div className="mt-4">
       <p className="section-title mb-2">Ward Map</p>
-      <div className="relative inline-block rounded-xl overflow-hidden border border-zar-border">
+      {/* Fixed internal resolution, scaled by CSS so it fits small screens */}
+      <div className="relative w-full max-w-[400px] aspect-square rounded-xl overflow-hidden border border-zar-border">
         <img
           src={`https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/map/map11.png`}
           alt="Summoner's Rift"
-          width={CANVAS_SIZE}
-          height={CANVAS_SIZE}
-          className="block opacity-70"
+          className="block w-full h-full object-cover opacity-70"
           onError={e => { e.target.style.background = '#0d1117' }}
         />
         <canvas
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          className="absolute inset-0"
+          className="absolute inset-0 w-full h-full"
         />
       </div>
       {/* Legend */}

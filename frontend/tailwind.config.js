@@ -16,6 +16,10 @@ export default {
           'cyan-light': '#33DDE8',
           green: '#2ECC71',
           red:   '#FF4757',
+          // Chart fills — CVD-validated pair (deutan ΔE > 8 on dark surface).
+          // Text next to these always carries a word label, never color alone.
+          win:   '#4ADE80',
+          loss:  '#E5384C',
           yellow: '#FFD60A',
           orange: '#FF9F0A',
           purple: '#BF5AF2',

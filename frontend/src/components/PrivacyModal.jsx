@@ -1,10 +1,21 @@
+import { useModal } from '../utils/useModal'
+
 export default function PrivacyModal({ onClose }) {
+  const dialogRef = useModal(onClose)
+
   return (
     <div
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-zar-card border border-zar-border rounded-xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto space-y-4">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Privacy Policy"
+        className="bg-zar-card border border-zar-border rounded-xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto space-y-4 focus:outline-none"
+      >
         <div className="flex justify-between items-start">
           <h2 className="text-base font-black text-white uppercase tracking-widest">Privacy Policy</h2>
           <button

@@ -5,8 +5,14 @@ def analyze_champion_stats(matches: List[Dict], puuid: str) -> Dict[str, Any]:
     champion_stats = {}
     
     for match in matches:
-        player = next(p for p in match['info']['participants'] if p['puuid'] == puuid)
+        player = next((p for p in match['info']['participants'] if p['puuid'] == puuid), None)
+        if player is None:
+            continue
         champion = player['championName']
+        # Riot match-v5 reports "FiddleSticks"; Data Dragon (icons, meta cache)
+        # uses "Fiddlesticks" — normalize so downstream lookups work.
+        if champion == 'FiddleSticks':
+            champion = 'Fiddlesticks'
         
         # Initialize champion stats if not exists
         if champion not in champion_stats:
@@ -52,7 +58,8 @@ def analyze_champion_stats(matches: List[Dict], puuid: str) -> Dict[str, Any]:
     # Calculate averages and percentages
     for stats in champion_stats.values():
         games = stats['games']
-        minutes = stats['total_time'] / 60
+        # A remake can report gameDuration == 0 — clamp to avoid ZeroDivisionError
+        minutes = max(stats['total_time'] / 60, 1)
         
         stats['winrate'] = (stats['wins'] / games) * 100
         stats['kda'] = (stats['kills'] + stats['assists']) / max(1, stats['deaths'])

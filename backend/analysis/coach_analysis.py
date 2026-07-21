@@ -230,8 +230,10 @@ def _find_cross_flags(champion_stats: dict, tier: str) -> list:
     cs_bench = CS_BENCHMARKS.get(tier.upper(), CS_BENCHMARKS["DEFAULT"])
     flags = []
     for name, s in champion_stats.items():
-        if s.get("games", 0) < MIN_GAMES_FOR_POOL or len(flags) >= 2:
+        if len(flags) >= 2:
             break
+        if s.get("games", 0) < MIN_GAMES_FOR_POOL:
+            continue
         role = s.get("main_role", "DEFAULT")
         dmg_bench = DAMAGE_BENCHMARKS.get(role, DAMAGE_BENCHMARKS["DEFAULT"])
         cs_val = s.get("cs_per_min", 0.0)

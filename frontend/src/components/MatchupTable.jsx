@@ -1,3 +1,5 @@
+import { championDisplayName } from '../utils/champions'
+
 export default function MatchupTable({ matchupInsights, ddVersion }) {
   if (!matchupInsights?.length) return null
 
@@ -19,11 +21,11 @@ export default function MatchupTable({ matchupInsights, ddVersion }) {
               <div className="flex items-center gap-2">
                 <img
                   src={iconUrl}
-                  alt={mu.enemy}
+                  alt=""
                   className="w-7 h-7 rounded"
                   onError={e => { e.target.style.display = 'none' }}
                 />
-                <span className="text-sm font-semibold">{mu.enemy}</span>
+                <span className="text-sm font-semibold">{championDisplayName(mu.enemy)}</span>
               </div>
               <div className="flex items-center gap-4 text-right">
                 <div className="text-center">

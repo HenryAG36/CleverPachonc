@@ -1,3 +1,5 @@
+import { championDisplayName } from '../utils/champions'
+
 export default function MasteryCard({ mastery, ddVersion }) {
   if (!mastery?.length) {
     return (
@@ -18,12 +20,12 @@ export default function MasteryCard({ mastery, ddVersion }) {
             <span className="text-zar-text-tertiary text-xs w-5 shrink-0 font-bold">#{i + 1}</span>
             <img
               src={iconUrl}
-              alt={champ.championName}
+              alt=""
               className="w-10 h-10 rounded-lg"
               onError={e => { e.target.style.display = 'none' }}
             />
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm truncate">{champ.championName}</p>
+              <p className="font-bold text-sm truncate">{championDisplayName(champ.championName)}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="bg-zar-pink/10 text-zar-pink border border-zar-pink/20 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">
                   M{champ.championLevel}

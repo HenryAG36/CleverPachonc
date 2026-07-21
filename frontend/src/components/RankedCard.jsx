@@ -62,11 +62,16 @@ export default function RankedCard({ queue }) {
           </span>
         </div>
 
-        <div className="h-1.5 bg-zar-card2 rounded-full overflow-hidden mt-1 mb-2">
+        <div
+          className="h-1.5 rounded-full overflow-hidden mt-1 mb-2 flex gap-0.5"
+          role="img"
+          aria-label={`${winrate}% win rate`}
+        >
           <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${winrate}%`, background: 'linear-gradient(90deg, #00CFDD, #00CFDD99)' }}
+            className="h-full rounded-full bg-zar-win transition-all duration-500"
+            style={{ width: `${winrate}%` }}
           />
+          <div className="h-full rounded-full bg-zar-loss/40 flex-1" />
         </div>
 
         {streak !== 0 && (
@@ -91,7 +96,7 @@ export default function RankedCard({ queue }) {
           </div>
         )}
 
-        {avgKDA && (
+        {avgKDA && queue.recentGames > 0 && (
           <div className="stat-row">
             <span className="stat-label">Avg KDA</span>
             <span>
@@ -104,6 +109,12 @@ export default function RankedCard({ queue }) {
           </div>
         )}
       </div>
+
+      {queue.recentGames > 0 && (
+        <p className="text-[10px] text-zar-text-tertiary mt-3 uppercase tracking-widest font-semibold">
+          Streak, role &amp; KDA from last {queue.recentGames} games in this queue
+        </p>
+      )}
     </div>
   )
 }

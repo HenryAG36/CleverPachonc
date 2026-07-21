@@ -2,6 +2,8 @@ import { useState } from 'react'
 import MetaTierBadge from './MetaTierBadge'
 import BuildComparison from './BuildComparison'
 import MatchupTable from './MatchupTable'
+import { championDisplayName } from '../utils/champions'
+import { fetchJson } from '../utils/fetchJson'
 
 const ROLE_DISPLAY = {
   TOP: 'Top', JUNGLE: 'Jungle', MIDDLE: 'Mid',
@@ -13,15 +15,32 @@ const RAW_KEY_MAP = {
   cs_high: 'Strong CS / Farming Efficiency',
   dmg_high: 'High Damage Output',
   vision_high: 'Excellent Vision Control',
+  kda_low: 'Improve KDA / Death Control',
+  cs_low: 'Improve CS / Farming Efficiency',
+  dmg_low: 'Increase Damage Output',
+  vision_low: 'Improve Vision Control',
+  role_wr_low: 'Win Rate in Off-Roles',
+  sample_size: 'Play More Ranked Games for a Reliable Read',
+  cs_good_dmg_low: 'Convert Your Farm Into Damage',
+  wr_low_kda_ok: 'Turn Good KDAs Into Wins',
   maintain_consistency: 'Keep your current consistency — fundamentals look solid.',
 }
+
+// The backend may emit raw finding keys like "cs_low:Jinx" when the LLM is
+// unavailable — turn them into readable text instead of showing internals.
 function safeText(text) {
   if (!text) return ''
-  const raw = text.match(/^([a-z]+_[a-z]+)(:[\w]+)?$/)
+  const raw = text.match(/^([a-z]+(?:_[a-z]+)+)(?::(\w+))?$/)
   if (!raw) return text
   const mapped = RAW_KEY_MAP[raw[1]]
-  if (mapped) return mapped
-  return text.replace(/_/g, ' ').replace(':', ' — ').replace(/\b\w/g, c => c.toUpperCase())
+  const subjectRaw = raw[2]
+  let subject = null
+  if (subjectRaw && subjectRaw !== 'overall') {
+    subject = ROLE_DISPLAY[subjectRaw] ?? championDisplayName(subjectRaw)
+  }
+  if (mapped) return subject ? `${mapped} — focus on ${subject}` : mapped
+  const generic = raw[1].replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  return subject ? `${generic} — ${subject}` : generic
 }
 
 const WEAKNESS_ACCENTS = [
@@ -40,13 +59,11 @@ export default function AICoach({ data }) {
     setError(null)
     setCoaching(null)
     try {
-      const res = await fetch('/api/coach', {
+      const json = await fetchJson('/api/coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Analysis failed')
       setCoaching(json)
     } catch (e) {
       setError(e.message)
@@ -161,10 +178,13 @@ export default function AICoach({ data }) {
                   return (
                     <div key={i} className="stat-row items-center">
                       <div className="flex items-center gap-2">
-                        <img src={iconUrl} alt={pick.name} className="w-7 h-7 rounded"
+                        <img src={iconUrl} alt="" className="w-7 h-7 rounded"
                           onError={e => { e.target.style.display = 'none' }} />
-                        <span className="text-sm font-semibold">{pick.name}</span>
+                        <span className="text-sm font-semibold">{championDisplayName(pick.name)}</span>
                         <MetaTierBadge tier={pick.tier} wr={pick.wr} size="xs" />
+                        {pick.wr == null && pick.pick_rate != null && (
+                          <span className="text-[10px] text-zar-cyan font-bold">{pick.pick_rate}% PR</span>
+                        )}
                       </div>
                       <span className="text-xs text-zar-text-secondary">
                         {ROLE_DISPLAY[pick.role] ?? pick.role}
@@ -174,7 +194,9 @@ export default function AICoach({ data }) {
                 })}
               </div>
               <p className="text-[10px] text-zar-text-tertiary mt-2 uppercase tracking-widest font-semibold">
-                Meta win rates at your tier this patch
+                {coaching.meta.meta_picks.some(p => p.wr != null)
+                  ? 'Meta win rates at your tier this patch'
+                  : 'Most-picked champions from your pool this patch'}
               </p>
             </div>
           )}
@@ -207,7 +229,7 @@ export default function AICoach({ data }) {
                         const champMeta = coaching.meta?.per_champ_meta?.[c]
                         return (
                           <span key={c} className="text-xs bg-zar-green/10 text-zar-green border border-zar-green/20 px-2.5 py-0.5 rounded font-bold flex items-center gap-1">
-                            {c}
+                            {championDisplayName(c)}
                             {champMeta && <MetaTierBadge tier={champMeta.tier} size="xs" />}
                           </span>
                         )
@@ -220,7 +242,7 @@ export default function AICoach({ data }) {
                     <span className="stat-label">Drop</span>
                     <div className="flex gap-1.5 flex-wrap justify-end">
                       {coaching.champion_pool.drop.map(c => (
-                        <span key={c} className="text-xs bg-zar-red/10 text-zar-red border border-zar-red/20 px-2.5 py-0.5 rounded font-bold">{c}</span>
+                        <span key={c} className="text-xs bg-zar-red/10 text-zar-red border border-zar-red/20 px-2.5 py-0.5 rounded font-bold">{championDisplayName(c)}</span>
                       ))}
                     </div>
                   </div>

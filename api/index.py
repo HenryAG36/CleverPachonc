@@ -16,10 +16,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask, jsonify, request, send_from_directory
-from flask_cors import CORS
 
 from backend.riot_api import get_summoner_data_async
-from backend.data_dragon import get_champion_map, get_item_data, get_latest_version, get_rune_tree
+from backend.data_dragon import get_champion_map, get_latest_version, get_rune_tree
 from backend.analysis.match_analysis import analyze_match_history
 from backend.analysis.champion_stats import analyze_champion_stats
 from backend.ai_coach import generate_coaching
@@ -35,13 +34,11 @@ from backend.utils.exceptions import (
 )
 
 app = Flask(__name__)
-CORS(app)
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 # Module-level cache — reused across warm invocations on Vercel
 _champion_map = None
-_item_data = None
 _rune_tree = None
 
 
@@ -50,13 +47,6 @@ def _get_champion_map():
     if _champion_map is None:
         _champion_map = get_champion_map()
     return _champion_map
-
-
-def _get_item_data():
-    global _item_data
-    if _item_data is None:
-        _item_data = get_item_data()
-    return _item_data
 
 
 def _get_rune_tree():
@@ -92,11 +82,11 @@ def summoner():
         return jsonify({"error": f"Network error: {e}"}), 502
     except APIError as e:
         return jsonify({"error": str(e)}), 500
-    except Exception as e:
-        return jsonify({"error": f"Unexpected error: {e}"}), 500
+    except Exception:
+        app.logger.exception("Unexpected error fetching summoner data")
+        return jsonify({"error": "Something went wrong on our side. Please try again."}), 500
 
     champion_map = _get_champion_map() or {}
-    item_data = _get_item_data() or {}
     dd_version = get_latest_version()
     puuid = summoner_data["puuid"]
 
@@ -173,6 +163,7 @@ def summoner():
         formatted_matches.append({
             "matchId": match["metadata"]["matchId"],
             "queueId": queue_id,
+            "gameEndTimestamp": match["info"].get("gameEndTimestamp"),
             "champion": champion_map.get(champ_id, "Unknown"),
             "championId": p["championId"],
             "win": p["win"],
@@ -188,9 +179,13 @@ def summoner():
             "participants": all_participants,
         })
 
-    # ── Run analysis on raw match data ───────────────────────────────
-    match_analysis = analyze_match_history(matches, puuid) if matches else {}
-    champ_stats_raw = analyze_champion_stats(matches, puuid) if matches else {}
+    # ── Run analysis on raw match data (ranked queues only, so the stats
+    #    match what the UI displays even if the fetch filter ever changes) ──
+    ranked_matches = [
+        m for m in matches if m["info"].get("queueId", 0) in RANKED_QUEUES
+    ]
+    match_analysis = analyze_match_history(ranked_matches, puuid) if ranked_matches else {}
+    champ_stats_raw = analyze_champion_stats(ranked_matches, puuid) if ranked_matches else {}
 
     # Serialise champion_stats (core_items contains tuples → convert to lists)
     champ_stats = {}
@@ -226,6 +221,9 @@ def summoner():
             "tagLine": summoner_data.get("tagLine", ""),
             "summonerLevel": summoner_data.get("summonerLevel", 0),
             "profileIconId": summoner_data.get("profileIconId", 0),
+            # Lets the frontend identify the player in scoreboards directly
+            # instead of guessing by display-name matching.
+            "puuid": puuid,
         },
         "ranked": ranked,
         "mastery": formatted_mastery,
@@ -247,8 +245,9 @@ def coach():
         return jsonify(result)
     except ValueError as e:
         return jsonify({"error": str(e)}), 500
-    except Exception as e:
-        return jsonify({"error": f"Coach error: {e}"}), 500
+    except Exception:
+        app.logger.exception("Coach analysis failed")
+        return jsonify({"error": "The coach couldn't analyze this session. Please try again."}), 500
 
 
 @app.route("/api/match/timeline")
@@ -279,8 +278,17 @@ def match_timeline():
 
     try:
         timeline = asyncio.run(_fetch())
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+    except NotFoundError:
+        return jsonify({"error": "Timeline not available for this match."}), 404
+    except RateLimitError:
+        return jsonify({"error": "Rate limit exceeded — please wait and try again."}), 429
+    except AuthError:
+        return jsonify({"error": "Server API key is invalid or expired."}), 401
+    except NetworkError:
+        return jsonify({"error": "Could not reach the Riot API."}), 502
+    except Exception:
+        app.logger.exception("Timeline fetch failed")
+        return jsonify({"error": "Failed to load ward data."}), 500
 
     if not timeline:
         return jsonify({"ward_events": []})
@@ -300,7 +308,7 @@ def match_timeline():
             if event.get("type") != "WARD_PLACED":
                 continue
             pos = event.get("position")
-            if not pos or "x" not in pos:
+            if not pos or "x" not in pos or "y" not in pos:
                 continue
             creator_id = event.get("creatorId")
             if player_pid is not None and creator_id != player_pid:
@@ -330,8 +338,9 @@ def coach_match():
         return jsonify(result)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 500
-    except Exception as exc:
-        return jsonify({"error": f"Coach error: {exc}"}), 500
+    except Exception:
+        app.logger.exception("Match coach analysis failed")
+        return jsonify({"error": "The coach couldn't analyze this game. Please try again."}), 500
 
 
 @app.route("/api/tierlist")

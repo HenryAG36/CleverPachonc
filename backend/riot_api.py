@@ -184,7 +184,9 @@ async def get_summoner_data_async(
                 session,
                 f"https://{routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids",
                 headers,
-                params={"count": 20},
+                # type=ranked → solo/duo + flex only, so analytics are never
+                # polluted by ARAM/normal games the UI doesn't display.
+                params={"count": 20, "type": "ranked"},
             ),
         )
 
@@ -208,29 +210,39 @@ async def get_summoner_data_async(
             match_details = [m for m in results if isinstance(m, dict)]
 
     # ── Step 4: compute analytics from the same match_details ───────
-    streak = _compute_streak(match_details, puuid)
+    def _queue_stats(details: List[Dict]) -> Dict:
+        streak = _compute_streak(details, puuid)
+        roles: Dict[str, int] = defaultdict(int)
+        kda_totals = {"kills": 0, "deaths": 0, "assists": 0}
+        games_counted = 0
+        for match in details:
+            p = next((x for x in match["info"]["participants"] if x["puuid"] == puuid), None)
+            if not p:
+                continue
+            roles[p["teamPosition"]] += 1
+            kda_totals["kills"] += p["kills"]
+            kda_totals["deaths"] += p["deaths"]
+            kda_totals["assists"] += p["assists"]
+            games_counted += 1
+        return {
+            "streak": streak,
+            "mostPlayedRole": max(roles, key=roles.get) if roles else "Unknown",
+            "avgKDA": {k: kda_totals[k] / games_counted if games_counted else 0 for k in kda_totals},
+            "recentGames": games_counted,
+        }
 
-    roles: Dict[str, int] = defaultdict(int)
-    kda_totals = {"kills": 0, "deaths": 0, "assists": 0}
-    games_counted = 0
-
-    for match in match_details:
-        p = next((x for x in match["info"]["participants"] if x["puuid"] == puuid), None)
-        if not p:
-            continue
-        roles[p["teamPosition"]] += 1
-        kda_totals["kills"] += p["kills"]
-        kda_totals["deaths"] += p["deaths"]
-        kda_totals["assists"] += p["assists"]
-        games_counted += 1
-
-    avg_kda = {k: kda_totals[k] / games_counted if games_counted else 0 for k in kda_totals}
-    most_played_role = max(roles, key=roles.get) if roles else "Unknown"
-
+    # Each ranked entry gets stats from ITS queue's games only, so the solo
+    # and flex cards don't show each other's numbers.
+    QUEUE_TYPE_TO_ID = {"RANKED_SOLO_5x5": 420, "RANKED_FLEX_SR": 440}
+    stats_cache: Dict[Optional[int], Dict] = {}
     for queue in ranked_data:
-        queue["streak"] = streak
-        queue["mostPlayedRole"] = most_played_role
-        queue["avgKDA"] = avg_kda
-        queue["recentGames"] = games_counted
+        queue_id = QUEUE_TYPE_TO_ID.get(queue.get("queueType"))
+        if queue_id not in stats_cache:
+            details = (
+                [m for m in match_details if m["info"].get("queueId") == queue_id]
+                if queue_id is not None else match_details
+            )
+            stats_cache[queue_id] = _queue_stats(details)
+        queue.update(stats_cache[queue_id])
 
     return summoner, ranked_data, mastery_data, match_details

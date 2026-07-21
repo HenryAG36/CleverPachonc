@@ -1,14 +1,11 @@
-import { useEffect } from 'react'
 import MetaTierBadge from './MetaTierBadge'
+import { championDisplayName } from '../utils/champions'
+import { useModal } from '../utils/useModal'
 
 const DDR_BASE = 'https://ddragon.leagueoflegends.com/cdn/img/'
 
 export default function ChampionMetaModal({ champion, ddVersion, runeTree, lane, onClose }) {
-  useEffect(() => {
-    const handler = e => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  const dialogRef = useModal(onClose)
 
   const keystone = champion.keystone_id
     ? runeTree?.flatMap(path => path.slots?.[0]?.runes || []).find(r => r.id === champion.keystone_id)
@@ -35,7 +32,12 @@ export default function ChampionMetaModal({ champion, ddVersion, runeTree, lane,
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="bg-zar-bg2 border border-zar-border rounded-2xl w-full max-w-sm overflow-hidden"
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${championDisplayName(champion.name)} meta details`}
+        className="bg-zar-bg2 border border-zar-border rounded-2xl w-full max-w-sm overflow-hidden focus:outline-none"
         style={{ boxShadow: '0 25px 80px rgba(0,0,0,0.6)' }}
       >
         {/* Splash art header */}
@@ -49,6 +51,7 @@ export default function ChampionMetaModal({ champion, ddVersion, runeTree, lane,
           <div className="absolute inset-0 bg-gradient-to-t from-zar-bg2 via-zar-bg2/20 to-transparent" />
           <button
             onClick={onClose}
+            aria-label="Close champion details"
             className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -57,7 +60,7 @@ export default function ChampionMetaModal({ champion, ddVersion, runeTree, lane,
           </button>
           <div className="absolute bottom-2.5 left-3 flex items-end gap-2">
             <div>
-              <p className="text-lg font-black text-white leading-none">{champion.name}</p>
+              <p className="text-lg font-black text-white leading-none">{championDisplayName(champion.name)}</p>
               <p className="text-[10px] text-zar-text-secondary uppercase tracking-widest">{lane}</p>
             </div>
             <MetaTierBadge tier={champion.tier} />

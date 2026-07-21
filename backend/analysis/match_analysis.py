@@ -13,8 +13,10 @@ def analyze_match_history(matches: List[Dict], puuid: str) -> Dict[str, Any]:
     }
     
     for match in matches:
-        player = next(p for p in match['info']['participants'] if p['puuid'] == puuid)
-        
+        player = next((p for p in match['info']['participants'] if p['puuid'] == puuid), None)
+        if player is None:
+            continue
+
         # Basic match stats
         match_analysis['total_games'] += 1
         match_analysis['wins'] += 1 if player['win'] else 0

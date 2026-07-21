@@ -70,6 +70,7 @@ def analyze_meta_gaps(
 
     per_champ_meta: dict[str, dict] = {}
     meta_wrs: list[tuple[str, float, str, str]] = []  # (name, wr, tier, role)
+    meta_prs: list[tuple[str, float, str | None, str]] = []  # pick-rate fallback
 
     for champ_name, stats in champion_stats.items():
         if stats.get("games", 0) < MIN_GAMES:
@@ -86,7 +87,10 @@ def analyze_meta_gaps(
         build_gaps = _build_gap(stats.get("core_items", []), meta.get("best_items", []))
 
         worst_matchups = sorted(
-            meta.get("matchups", {}).items(),
+            (
+                (k, v) for k, v in meta.get("matchups", {}).items()
+                if isinstance(v, dict) and v.get("wr") is not None
+            ),
             key=lambda kv: kv[1]["wr"],
         )[:3]
 
@@ -101,6 +105,8 @@ def analyze_meta_gaps(
         }
         if meta["win_rate"] is not None:
             meta_wrs.append((champ_name, meta["win_rate"], meta["tier"], role))
+        elif meta.get("pick_rate") is not None:
+            meta_prs.append((champ_name, meta["pick_rate"], meta.get("tier"), role))
 
     # Matchup insights: recurring losses cross-referenced with meta data
     losses_vs = _losses_per_enemy(matches)
@@ -118,11 +124,17 @@ def analyze_meta_gaps(
                 break
         matchup_insights.append({"enemy": enemy, "losses": losses, "meta_wr": meta_wr})
 
-    # Top 3 champions from the player's pool by meta WR
+    # Top 3 champions from the player's pool by meta WR; when the cache is
+    # pick-rate-only (no win rates), fall back to the most-picked champions.
     meta_picks = [
-        {"name": n, "wr": w, "tier": t, "role": r}
+        {"name": n, "wr": w, "pick_rate": None, "tier": t, "role": r}
         for n, w, t, r in sorted(meta_wrs, key=lambda x: -x[1])[:3]
     ]
+    if not meta_picks:
+        meta_picks = [
+            {"name": n, "wr": None, "pick_rate": p, "tier": t, "role": r}
+            for n, p, t, r in sorted(meta_prs, key=lambda x: -x[1])[:3]
+        ]
 
     return {
         "per_champ_meta": per_champ_meta,
